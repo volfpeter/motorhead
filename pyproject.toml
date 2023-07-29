@@ -1,0 +1,111 @@
+[project]
+name = "motorhead"
+description = "Collection of async utilities for working with MongoDB and conveniently creating performant APIs with async web frameworks such a FastAPI."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Peter Volf", email = "do.volfp@gmail.com" },
+]
+requires-python = ">=3.10"
+dependencies = ["pydantic", "motor"]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development",
+    "Typing :: Typed",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Internet :: WWW/HTTP",
+]
+
+[project.urls]
+Homepage = "https://github.com/volfpeter/motorhead"
+Documentation = "https://volfpeter.github.io/motorhead"
+
+[tool.poetry]
+name = "motorhead"
+version = "0.2307.0"
+description = "Async MongoDB with Pydantic - made easy."
+authors = ["Peter Volf <do.volfp@gmail.com>"]
+readme = "README.md"
+packages = [{include = "motorhead"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+motor = "^3.1.0"
+pydantic = "^2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+mkdocs-material = "^9.1.21"
+mkdocstrings = "^0.22.0"
+mypy = "^1.4.1"
+ruff = "^0.0.280"
+poethepoet = "^0.21.1"
+mongomock = "^4.1.2"
+pytest = "^7.4.0"
+
+[tool.poetry.group.fastapi.dependencies]
+fastapi = {extras = ["all"], version = "^0.100.1"}
+
+[tool.black]
+line-length = 108
+
+[tool.mypy]
+strict = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = "motor.core.*"
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 108
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "dist",
+    "docs",
+]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "S",  # flake8-bandit - we must ignore these rules in tests
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.isort]
+known-third-party = [
+    "bson",
+    "motor",
+    "pydantic",
+]
+
+[tool.poe.tasks]
+black = "black ."
+black-check = "black . --check"
+mypy = "mypy ."
+ruff = "ruff check ."
+
+static-checks.sequence =  ["ruff", "black-check", "mypy"]
+static-checks.ignore_fail = "return_non_zero"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
