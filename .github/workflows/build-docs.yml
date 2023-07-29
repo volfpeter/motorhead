@@ -9,13 +9,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install python
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.x
+          python-version-file: pyproject.toml
+
       - uses: actions/cache@v2
         with:
           key: ${{ github.ref }}
           path: .cache
+
       - run: pip install mkdocs-material mkdocstrings[python]
+
       - run: mkdocs gh-deploy --force
