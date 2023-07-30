@@ -695,9 +695,6 @@ class Service(Generic[TInsert, TUpdate]):
 
         Arguments:
             data: The model instance to dump.
-            exclude_none_id: Whether to exclude `None` `ObjectId` fields. This is usually
-                necessary during creation if the client sends `None` in a reference field,
-                to avoid creating a new `ObjectId` that doesn't reference an existing document.
 
         Returns:
             The MongoDB-compatible, dumped dictionary.
