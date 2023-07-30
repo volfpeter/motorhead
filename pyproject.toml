@@ -44,7 +44,7 @@ pydantic = "^2.1.0"
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
 mkdocs-material = "^9.1.21"
-mkdocstrings = "^0.22.0"
+mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 mypy = "^1.4.1"
 ruff = "^0.0.280"
 poethepoet = "^0.21.1"
@@ -98,6 +98,7 @@ known-third-party = [
 ]
 
 [tool.poe.tasks]
+serve-docs = "mkdocs serve"
 black = "black ."
 black-check = "black . --check"
 mypy = "mypy ."
