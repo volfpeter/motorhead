@@ -406,7 +406,6 @@ def create_app() -> FastAPI:
     register_routes(app)
 
     return app
-
 ```
 
 Notice the async `lifespan()` method (context manager) that creates the declared indexes before the application starts serving requests by calling the `create_indexes()` method of each service. There are of course many other ways for adding index creation (or recreation) to an application, like database migration or command line tools. Doing it in the `lifespan` method of the application is just one, easy to implement solution that works well for relatively small databases and for this demo application.

@@ -1,5 +1,5 @@
 from collections.abc import Callable, Coroutine
-from typing import Concatenate, Generic, ParamSpec, Type, TypeVar
+from typing import Concatenate, Generic, ParamSpec, TypeVar
 
 __all__ = ("BoundMethodWrapper",)
 
@@ -66,7 +66,7 @@ class BoundMethodWrapper(Generic[TOwner, TParams, TConfig]):
         return self._func.__qualname__
 
     def __get__(
-        self, owner: TOwner, obj_type: Type[TOwner] | None = None
+        self, owner: TOwner, obj_type: type[TOwner] | None = None
     ) -> Callable[TParams, Coroutine[None, None, None]]:
         """
         Descriptor implementation that makes the wrapper work as a bound method of its owner.

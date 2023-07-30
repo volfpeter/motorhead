@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, nullcontext
-from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar, get_args
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, get_args
 
 from bson import ObjectId
 from pydantic import BaseModel
@@ -590,7 +590,7 @@ class Service(Generic[TInsert, TUpdate]):
         )
 
     @classmethod
-    def get_objectid_fields(cls, model: Type[BaseModel]) -> set[str]:
+    def get_objectid_fields(cls, model: type[BaseModel]) -> set[str]:
         """
         Returns the names of all `ObjectId` fields.
 
