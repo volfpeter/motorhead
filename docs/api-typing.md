@@ -1,3 +1,3 @@
-# Helper types
+# Typing
 
 ::: motorhead.typing

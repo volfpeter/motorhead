@@ -46,7 +46,11 @@ nav:
       - FastAPI: fastapi-example.md
   - API Reference:
       - api-service.md
-      - api-model.md
+      - Model:
+          - api-model-document.md
+          - api-model-objectid.md
+          - api-model-utcdatetime.md
+          - api-model-deleteresultmodel.md
       - api-delete-rule.md
       - api-validator.md
       - api-typing.md

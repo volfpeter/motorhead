@@ -1,3 +1,3 @@
-# Validators
+# Validator
 
 ::: motorhead.validator
