@@ -16,7 +16,7 @@ To follow and try this example, you will need:
 
 - Python 3.10+;
 - access to a MongoDB database (e.g. a Community Edition running locally);
-- `fastapi` with all its dependencies (`pip install fastapi[all]`);
+- `fastapi` (version `>=0.100.1`) with all its dependencies (`pip install fastapi[all]`);
 - and of course this library.
 
 ## Project layout
