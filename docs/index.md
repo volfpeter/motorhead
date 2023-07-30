@@ -1,16 +1,16 @@
 # Motorhead
 
-`motorhead` is a collection of async utilities for working with MongoDB and conveniently creating performant APIs with async web frameworks such a [FastAPI](https://fastapi.tiangolo.com/).
+Async MongoDB with Pydantic v2+ - made easy.
 
 Key features:
 
-- Database **model** design with `Pydantic` v2.
+- Database **model** and API design with `Pydantic` v2+.
 - Relationship support and validation using async **validators and delete rules** with a declarative, decorator-based syntax.
 - Declarative **index** specification.
 - Typed **utilities** for convenient model and API creation.
 - Ready to use, customizable **async service layer** with **transaction support** that integrates all the above to keep your API and business logic clean, flexible, and easy to understand.
 
-By providing a convenient, declarative middle layer between MongoDB and your API, `motorhead` is halfway between an object document mapper (based on `Pydantic`) and a database driver (by wrapping the official, async `motor` driver).
+By providing a convenient, declarative middle layer between MongoDB and your API, `motorhead` is halfway between an object document mapper (based on `Pydantic`) and a database driver (by wrapping the official, async `motor` driver). What's missing is the built-in ODM performance and memory overhead, whose benefits are rarely felt when working with document databases.
 
 ## Installation
 
