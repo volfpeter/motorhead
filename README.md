@@ -1,16 +1,18 @@
 # Motorhead
 
-Async MongoDB with Pydantic v2+ - made easy.
+Async MongoDB with vanilla Pydantic v2+ - made easy.
 
 Key features:
 
-- Database **model** and API design with `Pydantic` v2+.
+- Database **model** and API design with vanilla `Pydantic` v2+.
 - Relationship support and validation using async **validators and delete rules** with a declarative, decorator-based syntax.
+- ODM-like query builder for convenient, typed, and Pythonic query construction.
 - Declarative **index** specification.
 - Typed **utilities** for convenient model and API creation.
 - Ready to use, customizable **async service layer** with **transaction support** that integrates all the above to keep your API and business logic clean, flexible, and easy to understand.
+- Simplicity: by not being a classic ODM, the codebase is very simple and easy to understand (even contribute to) even for relative beginners.
 
-By providing a convenient, declarative middle layer between MongoDB and your API, `motorhead` is halfway between an object document mapper (based on `Pydantic`) and a database driver (by wrapping the official, async `motor` driver). What's missing is the built-in ODM performance and memory overhead, whose benefits are rarely felt when working with document databases.
+By providing a convenient, declarative middle layer between MongoDB and your API, `motorhead` is halfway between an object document mapper (based on vanilla `Pydantic`) and a database driver (by wrapping the official, async `motor` driver). What's missing is the built-in ODM performance and memory overhead, whose benefits are rarely felt when working with document databases.
 
 See the [full documentation here](https://volfpeter.github.io/motorhead/).
 

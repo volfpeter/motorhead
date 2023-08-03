@@ -30,7 +30,7 @@ Documentation = "https://volfpeter.github.io/motorhead"
 
 [tool.poetry]
 name = "motorhead"
-version = "0.2308.0"
+version = "0.2308.1"
 description = "Async MongoDB with Pydantic - made easy."
 authors = ["Peter Volf <do.volfp@gmail.com>"]
 readme = "README.md"
