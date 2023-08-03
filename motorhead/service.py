@@ -8,6 +8,9 @@ from bson import ObjectId
 from pydantic import BaseModel
 from pymongo.results import DeleteResult, InsertOneResult, UpdateResult
 
+from .operator import ensure_dict
+from .typing import ClauseOrMongoQuery
+
 if TYPE_CHECKING:
     from motor.core import (
         AgnosticClientSession,
@@ -26,7 +29,6 @@ if TYPE_CHECKING:
         IndexData,
         InsertOneOptions,
         MongoProjection,
-        MongoQuery,
         UpdateManyOptions,
         UpdateObject,
         UpdateOneOptions,
@@ -145,7 +147,9 @@ class Service(Generic[TInsert, TUpdate]):
         """
         return self.collection.aggregate(pipeline, session=session, **kwargs)
 
-    async def count_documents(self, query: MongoQuery, *, options: FindOptions | None = None) -> int:
+    async def count_documents(
+        self, query: ClauseOrMongoQuery, *, options: FindOptions | None = None
+    ) -> int:
         """
         Returns the number of documents that match the given query.
 
@@ -156,6 +160,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The number of matching documents.
         """
+        query = ensure_dict(query)
         return await self.collection.count_documents(query, **(options or {}))  # type: ignore[no-any-return]
 
     async def create_index(
@@ -279,7 +284,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def delete_many(
         self,
-        query: MongoQuery | None,
+        query: ClauseOrMongoQuery | None,
         *,
         options: DeleteOptions | None = None,
     ) -> DeleteResult:
@@ -302,6 +307,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The result of the operation.
         """
+        query = None if query is None else ensure_dict(query)
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
@@ -342,7 +348,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def delete_one(
         self,
-        query: MongoQuery | None,
+        query: ClauseOrMongoQuery | None,
         *,
         options: DeleteOptions | None = None,
     ) -> DeleteResult:
@@ -365,6 +371,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The result of the operation.
         """
+        query = None if query is None else ensure_dict(query)
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
@@ -412,7 +419,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     def find(
         self,
-        query: MongoQuery | None = None,
+        query: ClauseOrMongoQuery | None = None,
         projection: MongoProjection | None = None,
         *,
         options: FindOptions | None = None,
@@ -428,11 +435,12 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             An async database cursor.
         """
+        query = None if query is None else ensure_dict(query)
         return self.collection.find(query, projection, **(options or {}))
 
     async def find_ids(
         self,
-        query: MongoQuery | None,
+        query: ClauseOrMongoQuery | None,
         *,
         session: AgnosticClientSession | None = None,
     ) -> list[ObjectId]:
@@ -446,6 +454,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The IDs of all matching documents.
         """
+        query = None if query is None else ensure_dict(query)
         return [
             doc["_id"]
             for doc in await self.collection.find(query, {"_id": True}, session=session).to_list(None)
@@ -453,7 +462,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def find_one(
         self,
-        query: MongoQuery | None = None,
+        query: ClauseOrMongoQuery | None = None,
         projection: MongoProjection | None = None,
         *,
         options: FindOptions | None = None,
@@ -469,6 +478,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             A single matching document or `None` if there are no matches.
         """
+        query = None if query is None else ensure_dict(query)
         return await self.collection.find_one(query, projection, **(options or {}))  # type: ignore[no-any-return]
 
     async def get_by_id(
@@ -537,7 +547,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def update_many(
         self,
-        query: MongoQuery | None,
+        query: ClauseOrMongoQuery | None,
         changes: TUpdate,
         *,
         options: UpdateManyOptions | None = None,
@@ -556,6 +566,7 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: if the data is invalid.
         """
+        query = None if query is None else ensure_dict(query)
         return await self.collection.update_many(  # type: ignore[no-any-return]
             query,
             await self._prepare_for_update(query, changes),
@@ -564,7 +575,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def update_one(
         self,
-        query: MongoQuery | None,
+        query: ClauseOrMongoQuery | None,
         changes: TUpdate,
         *,
         options: UpdateOneOptions | None = None,
@@ -583,6 +594,7 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: if the data is invalid.
         """
+        query = None if query is None else ensure_dict(query)
         return await self.collection.update_one(  # type: ignore[no-any-return]
             query,
             await self._prepare_for_update(query, changes),
@@ -718,7 +730,7 @@ class Service(Generic[TInsert, TUpdate]):
             ),
         }
 
-    async def _prepare_for_insert(self, query: MongoQuery | None, data: TInsert) -> dict[str, Any]:
+    async def _prepare_for_insert(self, query: ClauseOrMongoQuery | None, data: TInsert) -> dict[str, Any]:
         """
         Validates the given piece of data and converts it into its database representation
         if validation was successful.
@@ -737,7 +749,7 @@ class Service(Generic[TInsert, TUpdate]):
         return await self._convert_for_insert(data)
 
     async def _prepare_for_update(
-        self, query: MongoQuery | None, data: TUpdate
+        self, query: ClauseOrMongoQuery | None, data: TUpdate
     ) -> UpdateObject | Sequence[UpdateObject]:
         """
         Validates the given piece of data and converts it into an update object.
@@ -755,7 +767,7 @@ class Service(Generic[TInsert, TUpdate]):
         await self._validate_update(query, data)
         return await self._convert_for_update(data)
 
-    async def _validate_insert(self, query: MongoQuery | None, data: TInsert) -> None:
+    async def _validate_insert(self, query: ClauseOrMongoQuery | None, data: TInsert) -> None:
         """
         Validates the given piece of data for insertion by executing all insert validators.
 
@@ -824,7 +836,7 @@ class Service(Generic[TInsert, TUpdate]):
             if isinstance(rule, DeleteRule) and rule.config == "post":
                 await rule(self, session, ids)
 
-    async def _validate_update(self, query: MongoQuery | None, data: TUpdate) -> None:
+    async def _validate_update(self, query: ClauseOrMongoQuery | None, data: TUpdate) -> None:
         """
         Validates the given piece of data for update by executing all update validators.
 

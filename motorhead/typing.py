@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Protocol, TypedDict
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict, Union
 
 from motor.core import AgnosticClient, AgnosticCollection, AgnosticDatabase
 from pymongo.collation import Collation as PMCollation
@@ -50,6 +50,20 @@ UpdateObject = dict[str, Any] | Sequence[dict[str, Any]]
 """
 MongoDB update object.
 """
+
+
+class Clause(Protocol):
+    """
+    Protocol for clauses that service methods can convert to dictionaries
+    that can be consumed by MongoDB.
+    """
+
+    def to_mongo(self) -> dict[str, Any]:
+        ...
+
+
+ClauseOrMongoQuery = Union[Clause, MongoQuery]
+ClauseOrProjecttion = Union[Clause, MongoProjection]
 
 
 class CollationDict(TypedDict, total=False):

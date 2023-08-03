@@ -30,7 +30,7 @@ Documentation = "https://volfpeter.github.io/motorhead"
 
 [tool.poetry]
 name = "motorhead"
-version = "0.2307.0"
+version = "0.2308.0"
 description = "Async MongoDB with Pydantic - made easy."
 authors = ["Peter Volf <do.volfp@gmail.com>"]
 readme = "README.md"
@@ -48,7 +48,6 @@ mkdocstrings = {extras = ["python"], version = "^0.22.0"}
 mypy = "^1.4.1"
 ruff = "^0.0.280"
 poethepoet = "^0.21.1"
-mongomock = "^4.1.2"
 pytest = "^7.4.0"
 
 [tool.poetry.group.fastapi.dependencies]
@@ -97,12 +96,16 @@ known-third-party = [
     "pydantic",
 ]
 
+[tool.ruff.per-file-ignores]
+"tests/**/*" = ["S101"]  # S101: use of assert detected
+
 [tool.poe.tasks]
 serve-docs = "mkdocs serve"
 black = "black ."
 black-check = "black . --check"
 mypy = "mypy ."
 ruff = "ruff check ."
+test = "python -m pytest tests"
 
 static-checks.sequence =  ["ruff", "black-check", "mypy"]
 static-checks.ignore_fail = "return_non_zero"

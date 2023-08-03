@@ -46,6 +46,8 @@ nav:
       - FastAPI: fastapi-example.md
   - API Reference:
       - api-service.md
+      - api-query.md
+      - api-operator.md
       - Model:
           - api-model-document.md
           - api-model-objectid.md

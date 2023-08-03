@@ -2,7 +2,7 @@ from collections.abc import Callable, Coroutine
 from typing import Literal, TypeVar
 
 from .bound_method_wrapper import BoundMethodWrapper
-from .typing import MongoQuery
+from .typing import ClauseOrMongoQuery
 
 __all__ = (
     "ValidationError",
@@ -20,7 +20,9 @@ TInsertOrUpdate = TypeVar("TInsertOrUpdate")
 InsertUpdateConfig = Literal["insert", "update", "insert-update"]
 
 
-class Validator(BoundMethodWrapper[TOwner, [MongoQuery | None, TInsertOrUpdate], InsertUpdateConfig]):
+class Validator(
+    BoundMethodWrapper[TOwner, [ClauseOrMongoQuery | None, TInsertOrUpdate], InsertUpdateConfig]
+):
     """
     Validator method wrapper.
 
@@ -36,7 +38,7 @@ class Validator(BoundMethodWrapper[TOwner, [MongoQuery | None, TInsertOrUpdate],
 def validator(
     config: InsertUpdateConfig = "insert-update",
 ) -> Callable[
-    [Callable[[TOwner, MongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]]],
+    [Callable[[TOwner, ClauseOrMongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]]],
     "Validator[TOwner, TInsertOrUpdate]",
 ]:
     """
@@ -56,7 +58,8 @@ def validator(
     """
 
     def decorator(
-        func: Callable[[TOwner, MongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]], /
+        func: Callable[[TOwner, ClauseOrMongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]],
+        /,
     ) -> "Validator[TOwner, TInsertOrUpdate]":
         return Validator(func=func, config=config)
 

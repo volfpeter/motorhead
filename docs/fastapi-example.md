@@ -51,8 +51,10 @@ In the end, your directory structure should look like this:
 
 First we will implement the data model in `model.py`. Actually, we will implement three (`pydantic`) model classes, one for document serialization, one for creation, and one for editing.
 
+Additionally we will create a `Queryable` class using the `Q` factory that we will be able to use later to construct queries in an ODM-like manner.
+
 ```python
-from motorhead import BaseDocument, Document, ObjectId, UTCDatetime
+from motorhead import BaseDocument, Document, ObjectId, Q, UTCDatetime
 from pydantic import ConfigDict
 
 
@@ -64,6 +66,10 @@ class TreeNode(Document):
     name: str
     parent: ObjectId | None = None
     created_at: UTCDatetime
+
+
+QTreeNode = Q(TreeNode)
+"""Queryable class for the `TreeNode` collection."""
 
 
 class TreeNodeCreate(BaseDocument):
@@ -84,6 +90,7 @@ class TreeNodeUpdate(BaseDocument):
 
     name: str | None = None
     parent: ObjectId | None = None
+
 ```
 
 ## Services
@@ -91,15 +98,23 @@ class TreeNodeUpdate(BaseDocument):
 With the model in place, we can start working on the services (`service.py`) that we will use from the REST routes. This step is as simple as subclassing `Service` and specifying the collection name:
 
 ```python
-from typing import Any
 from collections.abc import Sequence
 from datetime import datetime, timezone
+from typing import Any, cast
 
 from bson import ObjectId
 from motor.core import AgnosticClientSession
-from motorhead import CollectionOptions, IndexData, MongoQuery, Service, delete_rule, validator
+from motorhead import (
+    ClauseOrMongoQuery,
+    CollectionOptions,
+    Field,
+    IndexData,
+    Service,
+    delete_rule,
+    validator,
+)
 
-from .model import TreeNodeCreate, TreeNodeUpdate
+from .model import QTreeNode, TreeNodeCreate, TreeNodeUpdate
 
 
 class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
@@ -135,22 +150,24 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @delete_rule("pre")  # Delete rule that removes the subtrees of deleted nodes.
     async def dr_delete_subtree(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
-        child_ids = await self.find_ids({"parent": {"$in": ids}}, session=session)
+        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids).to_mongo(), session=session)
         if len(child_ids) > 0:
             # Recursion
-            await self.delete_many({"_id": {"$in": child_ids}}, options={"session": session})
+            await self.delete_many(cast(Field, QTreeNode.id).In(child_ids), options={"session": session})
 
     @delete_rule("deny")  # Delete rule that prevents the removal of root nodes.
     async def dr_deny_if_root(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
         root_cnt = await self.count_documents(
-            {"$and": [{"_id": {"$in": ids}}, {"parent": None}]},
+            cast(Field, QTreeNode.id).In(ids) & (QTreeNode.parent == None),  # type: ignore[operator] # noqa [711]
             options={"session": session},
         )
         if root_cnt > 0:
             raise ValueError("Can not delete root nodes.")
 
     @validator("insert-update")
-    async def v_parent_valid(self, query: MongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate) -> None:
+    async def v_parent_valid(
+        self, query: ClauseOrMongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate
+    ) -> None:
         if data.parent is None:  # No parent node is always fine
             return
 
@@ -166,6 +183,11 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     ...
 ```
+
+There are a couple of important things to notice in the code above:
+
+- Validator methods can get either a MongoDB query `dict` or a `Clause` (any object with a `to_mongo()` method), that can be passed in to service methods for consumption.
+- Instead of writing MongoDB query dicts, in delete rules we used the previously created `QTreeNode` queryable class to build queries in and ODM-like manner, e.g. `QTreeNode.id.In(ids) & (QTreeNode.parent == None)`.
 
 Finally, we will declare the indexes of the collection by setting `TreeNodeService.indexes`, which must be an index name - `IndexData` dictionary. A unique, ascending, case-insensitive index on the `name` attribute can be declared like this:
 
@@ -191,15 +213,23 @@ For all indexing options, please see the [PyMongo documentation](https://pymongo
 Combining everything together, the final service implementation looks like this:
 
 ```python
-from typing import Any
 from collections.abc import Sequence
 from datetime import datetime, timezone
+from typing import Any, cast
 
 from bson import ObjectId
 from motor.core import AgnosticClientSession
-from motorhead import CollectionOptions, IndexData, MongoQuery, Service, delete_rule, validator
+from motorhead import (
+    ClauseOrMongoQuery,
+    CollectionOptions,
+    Field,
+    IndexData,
+    Service,
+    delete_rule,
+    validator,
+)
 
-from .model import TreeNodeCreate, TreeNodeUpdate
+from .model import QTreeNode, TreeNodeCreate, TreeNodeUpdate
 
 
 class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
@@ -223,22 +253,24 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @delete_rule("pre")  # Delete rule that removes the subtrees of deleted nodes.
     async def dr_delete_subtree(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
-        child_ids = await self.find_ids({"parent": {"$in": ids}}, session=session)
+        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids).to_mongo(), session=session)
         if len(child_ids) > 0:
             # Recursion
-            await self.delete_many({"_id": {"$in": child_ids}}, options={"session": session})
+            await self.delete_many(cast(Field, QTreeNode.id).In(child_ids), options={"session": session})
 
     @delete_rule("deny")  # Delete rule that prevents the removal of root nodes.
     async def dr_deny_if_root(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
         root_cnt = await self.count_documents(
-            {"$and": [{"_id": {"$in": ids}}, {"parent": None}]},
+            cast(Field, QTreeNode.id).In(ids) & (QTreeNode.parent == None),  # type: ignore[operator] # noqa [711]
             options={"session": session},
         )
         if root_cnt > 0:
             raise ValueError("Can not delete root nodes.")
 
     @validator("insert-update")
-    async def v_parent_valid(self, query: MongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate) -> None:
+    async def v_parent_valid(
+        self, query: ClauseOrMongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate
+    ) -> None:
         if data.parent is None:  # No parent node is always fine
             return
 
@@ -364,15 +396,16 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 
 from fastapi import FastAPI
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from motor.core import AgnosticClient, AgnosticDatabase
+from motor.motor_asyncio import AsyncIOMotorClient
 
 
 @lru_cache(maxsize=1)
-def get_database() -> AsyncIOMotorDatabase:
+def get_database() -> AgnosticDatabase:
     """Database provider dependency for the created API."""
     mongo_connection_string = "mongodb://127.0.0.1:27017"
     database_name = "tree-db"
-    client = AsyncIOMotorClient(mongo_connection_string)
+    client: AgnosticClient = AsyncIOMotorClient(mongo_connection_string)
     return client[database_name]
 
 

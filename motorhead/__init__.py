@@ -1,3 +1,4 @@
+from . import operator as operator
 from .bound_method_wrapper import BoundMethodWrapper as BoundMethodWrapper
 from .delete_rule import DeleteConfig as DeleteConfig
 from .delete_rule import DeleteError as DeleteError
@@ -7,6 +8,11 @@ from .model import DeleteResultModel as DeleteResultModel
 from .model import Document as Document
 from .model import ObjectId as ObjectId
 from .model import UTCDatetime as UTCDatetime
+from .operator import ensure_dict as ensure_dict
+from .query import Field as Field
+from .query import Q as Q
+from .query import Query as Query
+from .query import Queryable as Queryable
 from .service import DeleteResult as DeleteResult
 from .service import InsertOneResult as InsertOneResult
 from .service import Service as Service
@@ -14,6 +20,9 @@ from .service import UpdateResult as UpdateResult
 from .typing import AgnosticClient as AgnosticClient
 from .typing import AgnosticCollection as AgnosticCollection
 from .typing import AgnosticDatabase as AgnosticDatabase
+from .typing import Clause as Clause
+from .typing import ClauseOrMongoQuery as ClauseOrMongoQuery
+from .typing import ClauseOrProjecttion as ClauseOrProjecttion
 from .typing import ClientProvider as ClientProvider
 from .typing import Collation as Collation
 from .typing import CollectionOptions as CollectionOptions
