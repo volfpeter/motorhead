@@ -1,3 +1,12 @@
+![Tests](https://github.com/volfpeter/motorhead/actions/workflows/tests.yml/badge.svg)
+![Linters](https://github.com/volfpeter/motorhead/actions/workflows/linters.yml/badge.svg)
+![Documentation](https://github.com/volfpeter/motorhead/actions/workflows/build-docs.yml/badge.svg)
+![PyPI package](https://img.shields.io/pypi/v/motorhead?color=%2334D058&label=PyPI%20Package)
+
+**Source code**: [https://github.com/volfpeter/motorhead](https://github.com/volfpeter/motorhead)
+
+**Documentation and examples**: [https://volfpeter.github.io/motorhead](https://volfpeter.github.io/motorhead/)
+
 # Motorhead
 
 Async MongoDB with vanilla Pydantic v2+ - made easy.
