@@ -49,6 +49,8 @@ mypy = "^1.4.1"
 ruff = "^0.0.280"
 poethepoet = "^0.21.1"
 pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+pytest-docker = "^2.0.0"
 
 [tool.poetry.group.fastapi.dependencies]
 fastapi = {extras = ["all"], version = "^0.100.1"}
@@ -61,7 +63,7 @@ strict = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = "motor.core.*"
+module = ["motor.*", "pytest_docker.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

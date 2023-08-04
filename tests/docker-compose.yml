@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  db:
+    image: mongo:6.0.8-jammy
+    restart: always
+    ports:
+      - "37017:27017"
