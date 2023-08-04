@@ -43,7 +43,7 @@ The project depends on `motor` (the official asyncio MongoDB driver, which is bu
 
 ## Development
 
-Use `black` for code formatting, `mypy` for static code analysis, and `ruff` for linting.
+Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) an for testing.
 
 The documentation is built with `mkdocs-material` and `mkdocstrings`.
 
