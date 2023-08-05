@@ -341,14 +341,9 @@ def make_api(
     @api.post("/", response_model=TreeNode)
     async def create(data: TreeNodeCreate, service: DependsService) -> dict[str, Any]:
         try:
-            result = await service.insert_one(data)
+            return await service.create(data)
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Creation failed.") from e
-
-        if (created := await service.get_by_id(result.inserted_id)) is not None:
-            return created
-
-        raise HTTPException(status.HTTP_409_CONFLICT)
 
     @api.get("/{id}", response_model=TreeNode)
     async def get_by_id(id: ObjectId, service: DependsService) -> dict[str, Any]:
