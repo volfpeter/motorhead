@@ -28,8 +28,21 @@ class TestService:
     @pytest.mark.asyncio
     async def test_create(self, *, person_service: PersonService) -> None:
         pd = PersonData(name="Jack", lucky_number=6)
+        result = await person_service.create(pd)
+        assert isinstance(result, dict)
+        assert result["name"] == pd.name
+        assert result["lucky_number"] == pd.lucky_number
+        assert isinstance(result["_id"], ObjectId)
+        assert len(result) == 3
+
+        p = Person(**result)
+        assert isinstance(p.id, ObjectId)
+
+    @pytest.mark.asyncio
+    async def test_insert_one(self, *, person_service: PersonService) -> None:
+        pd = PersonData(name="Jack", lucky_number=6)
         insert_result = await person_service.insert_one(pd)
-        assert insert_result.acknowledged
+        assert isinstance(insert_result.inserted_id, ObjectId)
 
         result = await person_service.get_by_id(insert_result.inserted_id)
         assert isinstance(result, dict)
