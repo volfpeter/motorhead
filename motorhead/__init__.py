@@ -16,6 +16,7 @@ from .query import Queryable as Queryable
 from .service import DeleteResult as DeleteResult
 from .service import InsertOneResult as InsertOneResult
 from .service import Service as Service
+from .service import ServiceException as ServiceException
 from .service import UpdateResult as UpdateResult
 from .typing import AgnosticClient as AgnosticClient
 from .typing import AgnosticCollection as AgnosticCollection

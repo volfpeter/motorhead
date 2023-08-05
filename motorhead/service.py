@@ -48,6 +48,14 @@ TInsert = TypeVar("TInsert", bound=BaseModel)
 TUpdate = TypeVar("TUpdate", bound=BaseModel)
 
 
+class ServiceException(Exception):
+    """
+    Base class for custom exceptions that can be raised by `Service`.
+    """
+
+    ...
+
+
 class Service(Generic[TInsert, TUpdate]):
     """
     Base service with typed utility methods for MongoDB (`motor` asyncio).
@@ -500,6 +508,29 @@ class Service(Generic[TInsert, TUpdate]):
             The queried document if such a document exists.
         """
         return await self.find_one({"_id": id}, projection, options=options)
+
+    async def create(self, data: TInsert, *, options: InsertOneOptions | None = None) -> dict[str, Any]:
+        """
+        Inserts the given data into the collection and immediately queries
+        and returns the created document.
+
+        Arguments:
+            data: The data to be inserted.
+            options: Insert options, see the arguments of `collection.insert_one()` for details.
+
+        Returns:
+            The result of the operation.
+
+        Raises:
+            ServiceException:
+            Exception: if the data is invalid.
+        """
+        insert_result = await self.insert_one(data, options=options)
+        result = await self.get_by_id(insert_result.inserted_id)
+        if result is None:
+            raise ServiceException("Failed to query the inserted document by its ID.")
+
+        return result
 
     async def insert_one(
         self, data: TInsert, *, options: InsertOneOptions | None = None
