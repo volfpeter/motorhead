@@ -90,7 +90,6 @@ class TreeNodeUpdate(BaseDocument):
 
     name: str | None = None
     parent: ObjectId | None = None
-
 ```
 
 ## Services
@@ -355,17 +354,9 @@ def make_api(
     @api.put("/{id}", response_model=TreeNode)
     async def update_by_id(id: ObjectId, data: TreeNodeUpdate, service: DependsService) -> dict[str, Any]:
         try:
-            result = await service.update_by_id(id, data)
+            return await service.update(id, data)
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(id)) from e
-
-        if result.matched_count == 0:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(id))
-
-        if (updated := await service.get_by_id(id)) is not None:
-            return updated
-
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(id))
 
     @api.delete("/{id}", response_model=DeleteResultModel)
     async def delete_by_id(id: ObjectId, service: DependsService) -> DeleteResultModel:

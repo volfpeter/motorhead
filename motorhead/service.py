@@ -522,8 +522,8 @@ class Service(Generic[TInsert, TUpdate]):
             The result of the operation.
 
         Raises:
-            ServiceException:
-            Exception: if the data is invalid.
+            ServiceException: If the service failed to access the newly created document.
+            Exception: If the data is invalid.
         """
         insert_result = await self.insert_one(data, options=options)
         result = await self.get_by_id(insert_result.inserted_id)
@@ -546,12 +546,42 @@ class Service(Generic[TInsert, TUpdate]):
             The result of the operation.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         return await self.collection.insert_one(  # type: ignore[no-any-return]
             await self._prepare_for_insert(None, data),
             **(options or {}),
         )
+
+    async def update(
+        self,
+        id: ObjectId,
+        changes: TUpdate,
+        *,
+        options: UpdateOneOptions | None = None,
+    ) -> dict[str, Any]:
+        """
+        Updates the document with the given ID and immediately queries and returns
+        the updated document.
+
+        Arguments:
+            id: The ID of the document to update.
+            changes: The changes to make.
+            options: Update options, see the arguments of `collection.update_one()` for details.
+
+        Returns:
+            The updated document.
+
+        Raises:
+            ServiceException: If the service failed to query the updated document.
+            Exception: If the data is invalid.
+        """
+        await self.update_by_id(id, changes, options=options)
+        result = await self.get_by_id(id)
+        if result is None:
+            raise ServiceException("Failed to query the updated document by its ID.")
+
+        return result
 
     async def update_by_id(
         self,
@@ -572,7 +602,7 @@ class Service(Generic[TInsert, TUpdate]):
             The result of the operation.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         return await self.update_one({"_id": id}, changes, options=options)
 
@@ -595,7 +625,7 @@ class Service(Generic[TInsert, TUpdate]):
             The result of the operation.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         query = None if query is None else ensure_dict(query)
         return await self.collection.update_many(  # type: ignore[no-any-return]
@@ -623,7 +653,7 @@ class Service(Generic[TInsert, TUpdate]):
             The result of the operation.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         query = None if query is None else ensure_dict(query)
         return await self.collection.update_one(  # type: ignore[no-any-return]
@@ -666,7 +696,7 @@ class Service(Generic[TInsert, TUpdate]):
             The MongoDB-compatible, insertable data.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         return self._mongo_dump(data)
 
@@ -683,7 +713,7 @@ class Service(Generic[TInsert, TUpdate]):
             The MongoDB-compatible update object.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         return {"$set": self._mongo_dump(data)}
 
@@ -774,7 +804,7 @@ class Service(Generic[TInsert, TUpdate]):
             The MongoDB-compatible, insertable data.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         await self._validate_insert(query, data)
         return await self._convert_for_insert(data)
@@ -793,7 +823,7 @@ class Service(Generic[TInsert, TUpdate]):
             The MongoDB-compatible update object.
 
         Raises:
-            Exception: if the data is invalid.
+            Exception: If the data is invalid.
         """
         await self._validate_update(query, data)
         return await self._convert_for_update(data)
