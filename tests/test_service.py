@@ -38,6 +38,9 @@ class TestService:
         p = Person(**result)
         assert isinstance(p.id, ObjectId)
 
+        delete_result = await person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1
+
     @pytest.mark.asyncio
     async def test_insert_one(self, *, person_service: PersonService) -> None:
         pd = PersonData(name="Jack", lucky_number=6)
@@ -53,3 +56,6 @@ class TestService:
 
         p = Person(**result)
         assert isinstance(p.id, ObjectId)
+
+        delete_result = await person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1

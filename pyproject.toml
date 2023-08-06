@@ -51,6 +51,7 @@ poethepoet = "^0.21.1"
 pytest = "^7.4.0"
 pytest-asyncio = "^0.21.1"
 pytest-docker = "^2.0.0"
+pytest-random-order = "^1.1.0"
 
 [tool.poetry.group.fastapi.dependencies]
 fastapi = {extras = ["all"], version = "^0.100.1"}
@@ -107,7 +108,7 @@ black = "black ."
 black-check = "black . --check"
 mypy = "mypy ."
 ruff = "ruff check ."
-test = "python -m pytest tests"
+test = "python -m pytest tests --random-order"
 
 static-checks.sequence =  ["ruff", "black-check", "mypy"]
 static-checks.ignore_fail = "return_non_zero"
