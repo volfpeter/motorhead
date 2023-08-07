@@ -165,7 +165,7 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @validator("insert-update")
     async def v_parent_valid(
-        self, query: ClauseOrMongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate
+        self, data: TreeNodeCreate | TreeNodeUpdate, query: ClauseOrMongoQuery | None
     ) -> None:
         if data.parent is None:  # No parent node is always fine
             return
@@ -268,7 +268,7 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @validator("insert-update")
     async def v_parent_valid(
-        self, query: ClauseOrMongoQuery | None, data: TreeNodeCreate | TreeNodeUpdate
+        self, data: TreeNodeCreate | TreeNodeUpdate, query: ClauseOrMongoQuery | None
     ) -> None:
         if data.parent is None:  # No parent node is always fine
             return
