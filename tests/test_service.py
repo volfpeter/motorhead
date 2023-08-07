@@ -1,3 +1,6 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 import pytest
 from bson.objectid import ObjectId
 from motor.core import AgnosticDatabase
@@ -22,6 +25,18 @@ class PersonService(Service[PersonData, PersonData]):
 @pytest.fixture
 def person_service(*, database: AgnosticDatabase) -> PersonService:
     return PersonService(database)
+
+
+@asynccontextmanager
+async def make_person(
+    service: PersonService, *, name: str = "John", lucky_number: int = 401009
+) -> AsyncGenerator[Person, None]:
+    pd = PersonData(name=name, lucky_number=lucky_number)
+    person = Person(**await service.create(pd))
+
+    yield person
+
+    await service.delete_by_id(person.id)
 
 
 class TestService:
@@ -59,3 +74,30 @@ class TestService:
 
         delete_result = await person_service.delete_by_id(p.id)
         assert delete_result.deleted_count == 1
+
+    @pytest.mark.asyncio
+    async def test_insert_many(self, *, person_service: PersonService) -> None:
+        pds = [PersonData(name=f"Person - {i}", lucky_number=i) for i in range(997)]
+        insert_result = await person_service.insert_many(pds)
+        assert len(insert_result.inserted_ids) == len(pds)
+        assert await person_service.count_documents() == 997
+        assert (await person_service.delete_many(None)).deleted_count == 997
+
+    @pytest.mark.asyncio
+    async def test_update(self, *, person_service: PersonService) -> None:
+        async with make_person(person_service) as p:
+            p_id = p.id
+            assert p.name == "John"
+            assert p.lucky_number == 401009
+
+            updated = await person_service.update(p.id, PersonData(name="Paul", lucky_number=420618))
+            updated_p = Person(**updated)
+
+            assert updated["_id"] == p_id
+            assert len(updated) == 3
+
+            assert updated_p.name == "Paul"
+            assert updated_p.lucky_number == 420618
+
+            documents = await person_service.find().to_list(None)
+            assert len(documents) == 1
