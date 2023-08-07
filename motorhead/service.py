@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Mapping, Sequence
+from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, nullcontext
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, get_args
 
 from bson import ObjectId
 from pydantic import BaseModel
-from pymongo.results import DeleteResult, InsertOneResult, UpdateResult
+from pymongo.results import DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
 
 from .operator import ensure_dict
 from .typing import ClauseOrMongoQuery
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         DeleteOptions,
         FindOptions,
         IndexData,
+        InsertManyOptions,
         InsertOneOptions,
         MongoProjection,
         UpdateManyOptions,
@@ -39,6 +40,7 @@ from .validator import Validator
 
 __all__ = (
     "DeleteResult",
+    "InsertManyResult",
     "InsertOneResult",
     "Service",
     "UpdateResult",
@@ -156,7 +158,7 @@ class Service(Generic[TInsert, TUpdate]):
         return self.collection.aggregate(pipeline, session=session, **kwargs)
 
     async def count_documents(
-        self, query: ClauseOrMongoQuery, *, options: FindOptions | None = None
+        self, query: ClauseOrMongoQuery | None = None, *, options: FindOptions | None = None
     ) -> int:
         """
         Returns the number of documents that match the given query.
@@ -168,7 +170,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The number of matching documents.
         """
-        query = ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return await self.collection.count_documents(query, **(options or {}))  # type: ignore[no-any-return]
 
     async def create_index(
@@ -315,7 +317,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The result of the operation.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
@@ -379,7 +381,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The result of the operation.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
@@ -443,7 +445,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             An async database cursor.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return self.collection.find(query, projection, **(options or {}))
 
     async def find_ids(
@@ -462,7 +464,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             The IDs of all matching documents.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return [
             doc["_id"]
             for doc in await self.collection.find(query, {"_id": True}, session=session).to_list(None)
@@ -486,7 +488,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns:
             A single matching document or `None` if there are no matches.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return await self.collection.find_one(query, projection, **(options or {}))  # type: ignore[no-any-return]
 
     async def get_by_id(
@@ -500,7 +502,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns the document with the given ID if it exists.
 
         Arguments:
-            id: The ID of the queried document. Must be an `ObjectID`, not a `str`.
+            id: The ID of the queried document. Must be an `ObjectId`, not a `str`.
             projection: Optional projection.
             options: Query options, see the arguments of `collection.find()` for details.
 
@@ -532,6 +534,28 @@ class Service(Generic[TInsert, TUpdate]):
 
         return result
 
+    async def insert_many(
+        self, data: Iterable[TInsert], *, options: InsertManyOptions | None = None
+    ) -> InsertManyResult:
+        """
+        Inserts all the given objects into the collection.
+
+        Arguments:
+            data: The documents to be inserted.
+            options: Insert options, see the arguments of `collection.insert_many()` for details.
+
+        Returns
+            The result of the operation.
+
+        Raises:
+            Exception: If any of the documents is invalid.
+        """
+        insert_data = [await self._prepare_for_insert(d) for d in data]
+        return await self.collection.insert_many(  # type: ignore[no-any-return]
+            insert_data,
+            **(options or {}),
+        )
+
     async def insert_one(
         self, data: TInsert, *, options: InsertOneOptions | None = None
     ) -> InsertOneResult:
@@ -549,7 +573,7 @@ class Service(Generic[TInsert, TUpdate]):
             Exception: If the data is invalid.
         """
         return await self.collection.insert_one(  # type: ignore[no-any-return]
-            await self._prepare_for_insert(None, data),
+            await self._prepare_for_insert(data),
             **(options or {}),
         )
 
@@ -627,10 +651,10 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return await self.collection.update_many(  # type: ignore[no-any-return]
             query,
-            await self._prepare_for_update(query, changes),
+            await self._prepare_for_update(changes, query),
             **(options or {}),
         )
 
@@ -655,10 +679,10 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        query = None if query is None else ensure_dict(query)
+        query = {} if query is None else ensure_dict(query)
         return await self.collection.update_one(  # type: ignore[no-any-return]
             query,
-            await self._prepare_for_update(query, changes),
+            await self._prepare_for_update(changes, query),
             **(options or {}),
         )
 
@@ -791,14 +815,16 @@ class Service(Generic[TInsert, TUpdate]):
             ),
         }
 
-    async def _prepare_for_insert(self, query: ClauseOrMongoQuery | None, data: TInsert) -> dict[str, Any]:
+    async def _prepare_for_insert(
+        self, data: TInsert, query: ClauseOrMongoQuery | None = None
+    ) -> dict[str, Any]:
         """
         Validates the given piece of data and converts it into its database representation
         if validation was successful.
 
         Arguments:
-            query: Query that matches the documents that will be updated.
             data: The data to be inserted.
+            query: Query that matches the documents that will be updated.
 
         Returns:
             The MongoDB-compatible, insertable data.
@@ -806,18 +832,18 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        await self._validate_insert(query, data)
+        await self._validate_insert(data, query)
         return await self._convert_for_insert(data)
 
     async def _prepare_for_update(
-        self, query: ClauseOrMongoQuery | None, data: TUpdate
+        self, data: TUpdate, query: ClauseOrMongoQuery | None
     ) -> UpdateObject | Sequence[UpdateObject]:
         """
         Validates the given piece of data and converts it into an update object.
 
         Arguments:
-            query: Query that matches the documents that will be updated.
             data: The update data.
+            query: Query that matches the documents that will be updated.
 
         Returns:
             The MongoDB-compatible update object.
@@ -825,10 +851,10 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        await self._validate_update(query, data)
+        await self._validate_update(data, query)
         return await self._convert_for_update(data)
 
-    async def _validate_insert(self, query: ClauseOrMongoQuery | None, data: TInsert) -> None:
+    async def _validate_insert(self, data: TInsert, query: ClauseOrMongoQuery | None = None) -> None:
         """
         Validates the given piece of data for insertion by executing all insert validators.
 
@@ -844,7 +870,7 @@ class Service(Generic[TInsert, TUpdate]):
         # Sequential validation, slow but safe.
         for validator in self._validators():
             if "insert" in validator.config:
-                await validator(self, query, data)
+                await validator(self, data, query)
 
     async def _validate_deny_delete(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
         """
@@ -897,15 +923,15 @@ class Service(Generic[TInsert, TUpdate]):
             if isinstance(rule, DeleteRule) and rule.config == "post":
                 await rule(self, session, ids)
 
-    async def _validate_update(self, query: ClauseOrMongoQuery | None, data: TUpdate) -> None:
+    async def _validate_update(self, data: TUpdate, query: ClauseOrMongoQuery | None = None) -> None:
         """
         Validates the given piece of data for update by executing all update validators.
 
         See `Validator` for more information.
 
         Arguments:
-            query: Query that matches the documents that will be updated.
             data: The data to validate.
+            query: Query that matches the documents that will be updated.
 
         Raises:
             ValidationError: If validation failed.
@@ -913,7 +939,7 @@ class Service(Generic[TInsert, TUpdate]):
         # Sequential validation, slow but safe.
         for validator in self._validators():
             if "update" in validator.config:
-                await validator(self, query, data)
+                await validator(self, data, query)
 
     def _validators(
         self,

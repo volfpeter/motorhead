@@ -14,6 +14,7 @@ from .query import Q as Q
 from .query import Query as Query
 from .query import Queryable as Queryable
 from .service import DeleteResult as DeleteResult
+from .service import InsertManyResult as InsertManyResult
 from .service import InsertOneResult as InsertOneResult
 from .service import Service as Service
 from .service import ServiceException as ServiceException
@@ -31,6 +32,7 @@ from .typing import DatabaseProvider as DatabaseProvider
 from .typing import DeleteOptions as DeleteOptions
 from .typing import FindOptions as FindOptions
 from .typing import IndexData as IndexData
+from .typing import InsertManyOptions as InsertManyOptions
 from .typing import InsertOneOptions as InsertOneOptions
 from .typing import MongoProjection as MongoProjection
 from .typing import MongoQuery as MongoQuery

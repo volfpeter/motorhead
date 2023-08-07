@@ -21,7 +21,7 @@ InsertUpdateConfig = Literal["insert", "update", "insert-update"]
 
 
 class Validator(
-    BoundMethodWrapper[TOwner, [ClauseOrMongoQuery | None, TInsertOrUpdate], InsertUpdateConfig]
+    BoundMethodWrapper[TOwner, [TInsertOrUpdate, ClauseOrMongoQuery | None], InsertUpdateConfig]
 ):
     """
     Validator method wrapper.
@@ -38,7 +38,7 @@ class Validator(
 def validator(
     config: InsertUpdateConfig = "insert-update",
 ) -> Callable[
-    [Callable[[TOwner, ClauseOrMongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]]],
+    [Callable[[TOwner, TInsertOrUpdate, ClauseOrMongoQuery | None], Coroutine[None, None, None]]],
     "Validator[TOwner, TInsertOrUpdate]",
 ]:
     """
@@ -49,7 +49,7 @@ def validator(
     ```python
     class SVC(Service):
         @validator("update")
-        def check_something(self, data: InsertData | CreateData) -> None:
+        def check_something(self, data: InsertData | CreateData, query: ClauseOrMongoQuery | None) -> None:
             raise ValueError("Always fail.")
     ```
 
@@ -58,7 +58,7 @@ def validator(
     """
 
     def decorator(
-        func: Callable[[TOwner, ClauseOrMongoQuery | None, TInsertOrUpdate], Coroutine[None, None, None]],
+        func: Callable[[TOwner, TInsertOrUpdate, ClauseOrMongoQuery | None], Coroutine[None, None, None]],
         /,
     ) -> "Validator[TOwner, TInsertOrUpdate]":
         return Validator(func=func, config=config)

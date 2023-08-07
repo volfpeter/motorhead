@@ -29,6 +29,7 @@ __all__ = (
     "DeleteOptions",
     "FindOptions",
     "IndexData",
+    "InsertManyOptions",
     "InsertOneOptions",
     "UpdateOneOptions",
     "UpdateManyOptions",
@@ -148,6 +149,17 @@ class IndexData:
     collation: Collation | None = None
     sparse: bool = False
     extra: dict[str, Any] = field(default_factory=dict)
+
+
+class InsertManyOptions(TypedDict, total=False):
+    """
+    Options for insert many operation.
+    """
+
+    bypass_document_validation: bool  # Default is False
+    comment: Any | None  # Default is None
+    ordered: bool  # Default is True
+    session: AgnosticCollection | None  # Default is None
 
 
 class InsertOneOptions(TypedDict, total=False):
