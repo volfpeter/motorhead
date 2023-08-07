@@ -101,3 +101,27 @@ class TestService:
 
             documents = await person_service.find().to_list(None)
             assert len(documents) == 1
+
+    @pytest.mark.asyncio
+    async def test_update_by_id(self, *, person_service: PersonService) -> None:
+        async with make_person(person_service) as p:
+            p_id = p.id
+            assert p.name == "John"
+            assert p.lucky_number == 401009
+
+            update_result = await person_service.update_by_id(
+                p.id, PersonData(name="Paul", lucky_number=420618)
+            )
+            assert update_result.modified_count == 1
+            updated = await person_service.get_by_id(p.id)
+            assert updated is not None
+            updated_p = Person(**updated)
+
+            assert updated["_id"] == p_id
+            assert len(updated) == 3
+
+            assert updated_p.name == "Paul"
+            assert updated_p.lucky_number == 420618
+
+            documents = await person_service.find().to_list(None)
+            assert len(documents) == 1
