@@ -804,14 +804,12 @@ class Service(Generic[TInsert, TUpdate]):
                     include=objectid_fields,
                     by_alias=True,
                     exclude_unset=True,
-                    mode="python",
                 ).items()
             },
             **data.model_dump(
                 exclude=objectid_fields,
                 by_alias=True,
                 exclude_unset=True,
-                mode="json",
             ),
         }
 
