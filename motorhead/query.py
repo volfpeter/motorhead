@@ -195,7 +195,7 @@ class Query:
         """
         item._clause = self._clause
 
-    def to_mongo(self) -> "MongoQuery":
+    def to_mongo(self) -> MongoQuery:
         """
         Returns the `MongoQuery` representation of the query.
         """
@@ -216,7 +216,7 @@ class Queryable:
 
     class Person(BaseModel):
         name: str
-        lucky_number_ int
+        lucky_number: int
 
     class QPerson(Queryable, model=Person):
         __slots__ = ()
@@ -230,7 +230,7 @@ class Queryable:
 
     class Person(BaseModel):
         name: str
-        lucky_number_ int
+        lucky_number: int
 
     QPerson = Q(Person)
     ```

@@ -91,7 +91,7 @@ class CollectionOptions(TypedDict, total=False):
     Collection options.
     """
 
-    codec_options: "CodecOptions[Any]" | None  # Default is None
+    codec_options: CodecOptions[Any] | None  # Default is None
     read_preference: Primary | PrimaryPreferred | Secondary | SecondaryPreferred | Nearest | None  # Default  None
     write_concern: WriteConcern | None  # Default is None
     read_concern: ReadConcern | None  # Default is None

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 
@@ -9,7 +11,7 @@ if TYPE_CHECKING:
 # -- Clause
 
 
-def ensure_dict(data: "dict[str, Any] | Clause") -> dict[str, Any]:
+def ensure_dict(data: dict[str, Any] | Clause) -> dict[str, Any]:
     return data.to_mongo() if hasattr(data, "to_mongo") else data
 
 
@@ -25,7 +27,7 @@ class ClauseOperator:
 
     _operator: str = None  # type: ignore[assignment]
 
-    def __init__(self, *clauses: "Clause") -> None:
+    def __init__(self, *clauses: Clause) -> None:
         self._clauses = clauses
 
     def __init_subclass__(cls) -> None:
@@ -33,7 +35,7 @@ class ClauseOperator:
             cls._operator = f"${cls.__name__.lower()}"
 
     @property
-    def clauses(self) -> Generator["Clause", None, None]:
+    def clauses(self) -> Generator[Clause, None, None]:
         for clause in self._clauses:
             yield clause
 
@@ -50,7 +52,7 @@ class KeyValueOperator:
 
     _operator: str = None  # type: ignore[assignment]
 
-    def __init__(self, key: "str | Field", value: Any) -> None:
+    def __init__(self, key: str | Field, value: Any) -> None:
         self._key = key if isinstance(key, str) else key.name
         self._value = value
 
@@ -184,7 +186,7 @@ class Exists(KeyValueOperator):
 
     __slots__ = ()
 
-    def __init__(self, key: "str | Field", value: bool) -> None:
+    def __init__(self, key: str | Field, value: bool) -> None:
         if not isinstance(value, bool):
             raise ValueError("Exists field only accepts bool values.")
 
@@ -196,7 +198,7 @@ class Type(KeyValueOperator):
 
     __slots__ = ()
 
-    def __init__(self, key: "str | Field", value: str) -> None:
+    def __init__(self, key: str | Field, value: str) -> None:
         if not isinstance(value, str):
             raise ValueError("Type field only accepts string values.")
 
@@ -211,7 +213,7 @@ class All(KeyValueOperator):
 
     __slots__ = ()
 
-    def __init__(self, key: "str | Field", value: list[Any]) -> None:
+    def __init__(self, key: str | Field, value: list[Any]) -> None:
         if not isinstance(value, list):
             raise ValueError("All field only accepts list values.")
         super().__init__(key, value)
@@ -223,7 +225,7 @@ class ElemMatch(KeyValueOperator):
     __slots__ = ()
     _operator = "$elemMatch"
 
-    def __init__(self, key: "str | Field", value: dict[str, Any]) -> None:
+    def __init__(self, key: str | Field, value: dict[str, Any]) -> None:
         if not isinstance(value, dict):
             raise ValueError("ElemMatch field only accepts dict values.")
         super().__init__(key, value)
@@ -234,7 +236,7 @@ class Size(KeyValueOperator):
 
     __slots__ = ()
 
-    def __init__(self, key: "str | Field", value: int) -> None:
+    def __init__(self, key: str | Field, value: int) -> None:
         if not isinstance(value, int):
             raise ValueError("Size field only accepts int values.")
         super().__init__(key, value)

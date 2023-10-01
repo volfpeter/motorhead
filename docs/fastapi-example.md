@@ -149,7 +149,7 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @delete_rule("pre")  # Delete rule that removes the subtrees of deleted nodes.
     async def dr_delete_subtree(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
-        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids).to_mongo(), session=session)
+        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids), session=session)
         if len(child_ids) > 0:
             # Recursion
             await self.delete_many(cast(Field, QTreeNode.id).In(child_ids), options={"session": session})
@@ -252,7 +252,7 @@ class TreeNodeService(Service[TreeNodeCreate, TreeNodeUpdate]):
 
     @delete_rule("pre")  # Delete rule that removes the subtrees of deleted nodes.
     async def dr_delete_subtree(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
-        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids).to_mongo(), session=session)
+        child_ids = await self.find_ids(cast(Field, QTreeNode.parent).In(ids), session=session)
         if len(child_ids) > 0:
             # Recursion
             await self.delete_many(cast(Field, QTreeNode.id).In(child_ids), options={"session": session})
