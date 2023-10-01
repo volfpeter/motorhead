@@ -43,7 +43,7 @@ The project depends on `motor` (the official asyncio MongoDB driver, which is bu
 
 ## Development
 
-Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) an for testing.
+Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
 
 The documentation is built with `mkdocs-material` and `mkdocstrings`.
 
@@ -53,7 +53,7 @@ All contributions are welcome.
 
 ## Notes
 
-This project is the continuation of [fastapi-motor-oil](https://github.com/volfpeter/fastapi-motor-oil) with support for [Pydantic v2](https://docs.pydantic.dev/latest/migration/), among some other, minor improvements. Migration from `fastapi-motor-oil` should be easy, but if you need help, just create an issue in the issue tracker.
+This project is the continuation of [fastapi-motor-oil](https://github.com/volfpeter/fastapi-motor-oil) with support for [Pydantic v2](https://docs.pydantic.dev/latest/migration/), among other improvements. Migration from `fastapi-motor-oil` should be easy, but if you need help, just create an issue in the issue tracker.
 
 ## License - MIT
 

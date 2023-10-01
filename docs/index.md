@@ -31,14 +31,28 @@ The library is available on PyPI and can be installed with:
 $ pip install motorhead
 ```
 
-## Dependencies
+## Examples
 
-The project depends on `motor` (the official async MongoDB driver, which is built on top of `pymongo` and `bson`) and `pydantic`.
+See the [documentation](https://volfpeter.github.io/motorhead/fastapi-example/) for usage and application examples.
+
+## Requirements
+
+The project depends on `motor` (the official asyncio MongoDB driver, which is built on top of `pymongo` and `bson`) and `pydantic` v2+.
+
+## Development
+
+Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
+
+The documentation is built with `mkdocs-material` and `mkdocstrings`.
 
 ## Contributing
 
-Contributions are welcome.
+All contributions are welcome.
 
-## License
+## Notes
+
+This project is the continuation of [fastapi-motor-oil](https://github.com/volfpeter/fastapi-motor-oil) with support for [Pydantic v2](https://docs.pydantic.dev/latest/migration/), among other improvements. Migration from `fastapi-motor-oil` should be easy, but if you need help, just create an issue in the issue tracker.
+
+## License - MIT
 
 The library is open-sourced under the conditions of the [MIT license](https://choosealicense.com/licenses/mit/).
