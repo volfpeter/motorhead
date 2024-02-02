@@ -31,7 +31,7 @@ tracker = "https://github.com/volfpeter/motorhead/issues"
 
 [tool.poetry]
 name = "motorhead"
-version = "0.2309.0"
+version = "0.2402.0"
 description = "Async MongoDB with vanilla Pydantic v2+ - made easy."
 authors = ["Peter Volf <do.volfp@gmail.com>"]
 readme = "README.md"
