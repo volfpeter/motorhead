@@ -130,3 +130,6 @@ dmypy.json
 
 # Example app
 /tree_app
+
+# Poetry lock file
+poetry.lock
