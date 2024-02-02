@@ -38,7 +38,7 @@ class ObjectId(BSONObjectId):
     @classmethod
     def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
         return core_schema.json_or_python_schema(
-            python_schema=core_schema.general_plain_validator_function(cls.validate),
+            python_schema=core_schema.with_info_plain_validator_function(cls.validate),
             json_schema=str_schema(),
             serialization=core_schema.plain_serializer_function_ser_schema(lambda instance: str(instance)),
         )
