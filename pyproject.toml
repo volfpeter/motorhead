@@ -39,7 +39,7 @@ packages = [{include = "motorhead"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-motor = "^3.1.0"
+motor = "~3.1.0"
 pydantic = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -54,15 +54,13 @@ pytest-asyncio = "^0.21.1"
 pytest-docker = "^2.0.0"
 pytest-random-order = "^1.1.0"
 
-[tool.poetry.group.fastapi.dependencies]
-fastapi = {extras = ["all"], version = "^0.100.1"}
-
 [tool.black]
 line-length = 108
 
 [tool.mypy]
 strict = true
 show_error_codes = true
+exclude = ["tree_app"]
 
 [[tool.mypy.overrides]]
 module = ["motor.*", "pytest_docker.*"]
