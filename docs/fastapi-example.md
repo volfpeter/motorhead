@@ -23,7 +23,7 @@ To follow and try this example, you will need:
 
 Create the _root directory_ of your project, for example `tree-app`.
 
-Inside the _root directory_, create the root Python _package_ for the application -- `tree_app` -- and add the following empty files to:
+Inside the _root directory_, create the root Python _package_ for the application -- `tree_app` -- and add the following empty files to it:
 
 - `__init__.py`
 - `api.py`
@@ -429,6 +429,6 @@ def create_app() -> FastAPI:
 
 Notice the async `lifespan()` method (context manager) that creates the declared indexes before the application starts serving requests by calling the `create_indexes()` method of each service. There are of course many other ways for adding index creation (or recreation) to an application, like database migration or command line tools. Doing it in the `lifespan` method of the application is just one, easy to implement solution that works well for relatively small databases and for this demo application.
 
-## Run
+## Starting the application
 
 With everything ready, we can start the application by executing `uvicorn tree_app.main:create_app --reload --factory` in the root directory and go to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to try the created REST API.
