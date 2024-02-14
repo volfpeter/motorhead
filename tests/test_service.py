@@ -22,7 +22,7 @@ class PersonService(Service[PersonData, PersonData]):
     collection_name = "person"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def person_service(*, database: AgnosticDatabase) -> PersonService:
     return PersonService(database)
 

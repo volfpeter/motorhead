@@ -43,19 +43,15 @@ motor = "~3.1.0"
 pydantic = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.7.0"
-mkdocs-material = "^9.1.21"
-mkdocstrings = {extras = ["python"], version = "^0.22.0"}
-mypy = "^1.4.1"
-ruff = "^0.0.280"
-poethepoet = "^0.21.1"
-pytest = "^7.4.0"
-pytest-asyncio = "^0.21.1"
-pytest-docker = "^2.0.0"
-pytest-random-order = "^1.1.0"
-
-[tool.black]
-line-length = 108
+mkdocs-material = "^9.5.9"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+mypy = "^1.8.0"
+ruff = "^0.2.1"
+poethepoet = "^0.24.4"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.5"
+pytest-docker = "^3.1.1"
+pytest-random-order = "^1.1.1"
 
 [tool.mypy]
 strict = true
@@ -63,12 +59,12 @@ show_error_codes = true
 exclude = ["tree_app"]
 
 [[tool.mypy.overrides]]
-module = ["motor.*", "pytest_docker.*"]
+module = ["motor.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 108
-exclude = [
+lint.exclude = [
     ".git",
     ".mypy_cache",
     ".pytest_cache",
@@ -77,7 +73,7 @@ exclude = [
     "dist",
     "docs",
 ]
-select = [
+lint.select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
     "F",  # pyflakes
@@ -86,30 +82,23 @@ select = [
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
 ]
-ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-]
 
-[tool.ruff.isort]
-known-third-party = [
-    "bson",
-    "motor",
-    "pydantic",
-]
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/**/*" = ["S101"]  # S101: use of assert detected
+
+[tool.pytest.ini_options]
+addopts = "--random-order"
 
 [tool.poe.tasks]
 serve-docs = "mkdocs serve"
-black = "black ."
-black-check = "black . --check"
+check-format = "ruff format --check ."
+lint = "ruff check ."
 mypy = "mypy ."
-ruff = "ruff check ."
+format = "ruff format ."
+lint-fix = "ruff . --fix"
 test = "python -m pytest tests --random-order"
 
-static-checks.sequence =  ["ruff", "black-check", "mypy"]
+static-checks.sequence = ["lint", "check-format", "mypy"]
 static-checks.ignore_fail = "return_non_zero"
 
 [build-system]

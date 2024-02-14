@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from pydantic import AfterValidator
+
+_no_delta = timedelta()
 
 
 def _ensure_utc(value: datetime) -> datetime:
@@ -19,8 +21,9 @@ def _ensure_utc(value: datetime) -> datetime:
     if tzinfo is None:  # No timezone info, assume UTC.
         return value.replace(tzinfo=timezone.utc)
 
-    if tzinfo == timezone.utc:  # Timezone is UTC, no-op.
-        return value
+    if value.utcoffset() == _no_delta:
+        # Timezone is UTC (at least in offset), replace Pydantic's tzinfo with UTC.
+        return value.replace(tzinfo=timezone.utc)
 
     # Non-UTC timezone info, raise exception.
     raise ValueError("Non-UTC timezone.")
@@ -28,6 +31,6 @@ def _ensure_utc(value: datetime) -> datetime:
 
 UTCDatetime = Annotated[datetime, AfterValidator(_ensure_utc)]
 """
-Datetime that accepts only naive and UTC datetime objects and replaces
+Pydantic `datetime` that accepts only naive and UTC datetime objects and replaces
 the timezone of naive datetimes with UTC.
 """

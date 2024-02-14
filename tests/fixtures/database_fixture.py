@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from motor.core import AgnosticClient, AgnosticDatabase
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -23,7 +25,12 @@ def _ping_database(db_client: AgnosticClient) -> bool:
 
 
 @pytest.fixture(scope="session")
-def database(*, db_client: AgnosticClient, docker_services: DockerServices) -> AgnosticDatabase:
+def database(
+    *,
+    db_client: AgnosticClient,
+    docker_services: DockerServices,
+    event_loop: asyncio.AbstractEventLoop,
+) -> AgnosticDatabase:
     docker_services.wait_until_responsive(
         timeout=30,
         pause=0.5,

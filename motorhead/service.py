@@ -149,7 +149,8 @@ class Service(Generic[TInsert, TUpdate]):
         """
         Performs an aggregation.
 
-        For undocumented keyword arguments, see the documentation of `pymongo.collection.Collection.aggregate()`.
+        For undocumented keyword arguments, see the documentation of
+        `pymongo.collection.Collection.aggregate()`.
 
         Arguments:
             pipeline: The aggregation pipeline.
@@ -800,7 +801,7 @@ class Service(Generic[TInsert, TUpdate]):
         return {
             **{
                 k: None if v is None else ObjectId(v)
-                for k, v, in data.model_dump(
+                for k, v in data.model_dump(
                     include=objectid_fields,
                     by_alias=True,
                     exclude_unset=True,
