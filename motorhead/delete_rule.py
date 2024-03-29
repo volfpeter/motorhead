@@ -83,6 +83,6 @@ def delete_rule(
     def decorator(
         func: Callable[[TOwner, AgnosticClientSession, Sequence[ObjectId]], Coroutine[None, None, None]], /
     ) -> "DeleteRule[TOwner]":
-        return DeleteRule(func=func, config=config)
+        return DeleteRule(wrapped=func, config=config)
 
     return decorator

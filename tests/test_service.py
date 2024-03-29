@@ -190,6 +190,16 @@ class TestService:
         person_service: PersonService,
         person_service_with_rules: PersonServiceWithRules,
     ) -> None:
+        assert (
+            person_service_with_rules._dr_never_delete_root
+            is person_service_with_rules._dr_never_delete_root
+        )
+        assert (
+            person_service_with_rules._v_root_case_insensitive
+            is person_service_with_rules._v_root_case_insensitive
+        )
+        assert person_service_with_rules._v_root_unique is person_service_with_rules._v_root_unique
+
         with pytest.raises(ValidationError, match="PersonServiceWithRules._v_root_case_insensitive"):
             async with make_person(person_service_with_rules, name="Root"):
                 ...
