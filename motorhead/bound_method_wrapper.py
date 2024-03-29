@@ -29,27 +29,26 @@ class BoundMethodWrapper(Generic[TOwner, TParams, TConfig]):
                    this method produces.
     """
 
-    __slots__ = (
-        "_config",
-        "_func",
-    )
+    __slots__ = ("_config", "_wrapped", "_exec", "_owner")
 
     exception: Callable[[str], Exception] | None = None
 
     def __init__(
         self,
-        func: Callable[Concatenate[TOwner, TParams], Coroutine[None, None, None]],
+        wrapped: Callable[Concatenate[TOwner, TParams], Coroutine[None, None, None]],
         config: TConfig,
     ) -> None:
         """
         Initialization.
 
         Arguments:
-            func: The wrapped method.
+            wrapped: The wrapped method.
             config: Wrapper configuration.
         """
         self._config = config
-        self._func = func
+        self._wrapped = wrapped
+        self._exec: Callable[TParams, Coroutine[None, None, None]] | None = None
+        self._owner: TOwner | None = None
 
     @property
     def config(self) -> TConfig:
@@ -63,7 +62,7 @@ class BoundMethodWrapper(Generic[TOwner, TParams, TConfig]):
         """
         The (qualified) name of the wrapped method.
         """
-        return self._func.__qualname__
+        return self._wrapped.__qualname__
 
     def __get__(
         self, owner: TOwner, obj_type: type[TOwner] | None = None
@@ -71,11 +70,16 @@ class BoundMethodWrapper(Generic[TOwner, TParams, TConfig]):
         """
         Descriptor implementation that makes the wrapper work as a bound method of its owner.
         """
+        if owner is self._owner and self._exec is not None:
+            return self._exec
 
-        async def do(*args: TParams.args, **kwargs: TParams.kwargs) -> None:
+        async def exec(*args: TParams.args, **kwargs: TParams.kwargs) -> None:
             return await self(owner, *args, **kwargs)
 
-        return do
+        self._exec = exec
+        self._owner = owner
+
+        return exec
 
     async def __call__(self, owner: TOwner, *args: TParams.args, **kwargs: TParams.kwargs) -> None:
         """
@@ -89,6 +93,6 @@ class BoundMethodWrapper(Generic[TOwner, TParams, TConfig]):
             *kwargs: The wrapped method's keyword arguments.
         """
         try:
-            await self._func(owner, *args, **kwargs)
+            await self._wrapped(owner, *args, **kwargs)
         except Exception as e:
             raise e if self.exception is None else self.exception(f"Method failed: {self.name}") from e

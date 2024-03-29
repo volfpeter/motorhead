@@ -61,6 +61,6 @@ def validator(
         func: Callable[[TOwner, TInsertOrUpdate, ClauseOrMongoQuery | None], Coroutine[None, None, None]],
         /,
     ) -> "Validator[TOwner, TInsertOrUpdate]":
-        return Validator(func=func, config=config)
+        return Validator(wrapped=func, config=config)
 
     return decorator
