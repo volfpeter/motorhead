@@ -701,8 +701,11 @@ class Service(Generic[TInsert, TUpdate]):
                 continue
 
             if args := get_args(info.annotation):
-                if any(issubclass(a, ObjectId) for a in args):
-                    result.add(name)
+                try:
+                    if any(issubclass(a, ObjectId) for a in args):
+                        result.add(name)
+                except TypeError:
+                    continue
             elif issubclass(info.annotation, ObjectId):
                 result.add(name)
 
