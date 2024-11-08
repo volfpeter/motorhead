@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, nullcontext
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, get_args
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypedDict, TypeVar, get_args
 
 from bson import ObjectId
 from pydantic import BaseModel
@@ -58,6 +58,20 @@ class ServiceException(Exception):
     ...
 
 
+class ServiceConfig(TypedDict, total=False):
+    """Service configuration."""
+
+    exclude_unset_on_insert: bool
+    """Whether to exclude fields that have not been explicitly set on the data during insert operations."""
+
+
+class _default_service_config:
+    """Default service configuration."""
+
+    exclude_unset_on_insert: ClassVar[bool] = False
+    """See `ServiceConfig.exclude_unset_on_insert` for details."""
+
+
 class Service(Generic[TInsert, TUpdate]):
     """
     Base service with typed utility methods for MongoDB (`motor` asyncio).
@@ -81,20 +95,23 @@ class Service(Generic[TInsert, TUpdate]):
         "_supports_transactions",
     )
 
-    collection_name: str
+    collection_name: ClassVar[str]
     """
     The name of the collection the service operates on. Must be set by subclasses.
     """
 
-    collection_options: CollectionOptions | None = None
+    collection_options: ClassVar[CollectionOptions | None] = None
     """
     Optional `CollectionOptions` dict.
     """
 
-    indexes: dict[str, IndexData] | None = None
+    indexes: ClassVar[dict[str, IndexData] | None] = None
     """
     The full description of the indexes (if any) of the collection.
     """
+
+    service_config: ClassVar[ServiceConfig] = {}
+    """Service configuration. Partial override of parent class configuration is not supported."""
 
     def __init__(self, database: AgnosticDatabase) -> None:
         """
@@ -726,7 +743,12 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        return self._mongo_dump(data)
+        return self._mongo_dump(
+            data,
+            exclude_unset=self.service_config.get(
+                "exclude_unset_on_insert", _default_service_config.exclude_unset_on_insert
+            ),
+        )
 
     async def _convert_for_update(self, data: TUpdate) -> UpdateObject | Sequence[UpdateObject]:
         """
@@ -743,7 +765,7 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        return {"$set": self._mongo_dump(data)}
+        return {"$set": self._mongo_dump(data, exclude_unset=True)}
 
     def _create_collection(self) -> AgnosticCollection:
         """
@@ -790,12 +812,13 @@ class Service(Generic[TInsert, TUpdate]):
 
         return start_session
 
-    def _mongo_dump(self, data: BaseModel) -> dict[str, Any]:
+    def _mongo_dump(self, data: BaseModel, *, exclude_unset: bool) -> dict[str, Any]:
         """
         Dumps the given model instance for consumption by MongoDB.
 
         Arguments:
             data: The model instance to dump.
+            exclude_unset: Whether to exclude fields that have not been explicitly set on the data.
 
         Returns:
             The MongoDB-compatible, dumped dictionary.
@@ -807,13 +830,13 @@ class Service(Generic[TInsert, TUpdate]):
                 for k, v in data.model_dump(
                     include=objectid_fields,
                     by_alias=True,
-                    exclude_unset=True,
+                    exclude_unset=exclude_unset,
                 ).items()
             },
             **data.model_dump(
                 exclude=objectid_fields,
                 by_alias=True,
-                exclude_unset=True,
+                exclude_unset=exclude_unset,
             ),
         }
 

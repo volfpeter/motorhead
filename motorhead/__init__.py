@@ -17,6 +17,7 @@ from .service import DeleteResult as DeleteResult
 from .service import InsertManyResult as InsertManyResult
 from .service import InsertOneResult as InsertOneResult
 from .service import Service as Service
+from .service import ServiceConfig as ServiceConfig
 from .service import ServiceException as ServiceException
 from .service import UpdateResult as UpdateResult
 from .typing import AgnosticClient as AgnosticClient
