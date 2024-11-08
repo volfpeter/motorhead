@@ -4,9 +4,10 @@ from typing import cast
 
 import pytest
 from bson.objectid import ObjectId
-from motor.core import AgnosticClientSession, AgnosticDatabase
 
 from motorhead import (
+    AgnosticClientSession,
+    AgnosticDatabase,
     BaseDocument,
     ClauseOrMongoQuery,
     DeleteError,

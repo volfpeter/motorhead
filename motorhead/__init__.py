@@ -21,8 +21,12 @@ from .service import ServiceConfig as ServiceConfig
 from .service import ServiceException as ServiceException
 from .service import UpdateResult as UpdateResult
 from .typing import AgnosticClient as AgnosticClient
+from .typing import AgnosticClientSession as AgnosticClientSession
 from .typing import AgnosticCollection as AgnosticCollection
+from .typing import AgnosticCommandCursor as AgnosticCommandCursor
+from .typing import AgnosticCursor as AgnosticCursor
 from .typing import AgnosticDatabase as AgnosticDatabase
+from .typing import AgnosticLatentCommandCursor as AgnosticLatentCommandCursor
 from .typing import Clause as Clause
 from .typing import ClauseOrMongoQuery as ClauseOrMongoQuery
 from .typing import ClauseOrProjecttion as ClauseOrProjecttion

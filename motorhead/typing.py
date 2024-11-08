@@ -4,7 +4,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, TypedDict, Union
 
-from motor.core import AgnosticClient, AgnosticCollection, AgnosticDatabase
+from motor.core import AgnosticClient as _AgnosticClient
+from motor.core import AgnosticClientSession as AgnosticClientSession
+from motor.core import AgnosticCollection as _AgnosticCollection
+from motor.core import AgnosticCommandCursor as _AgnosticCommandCursor
+from motor.core import AgnosticCursor as _AgnosticCursor
+from motor.core import AgnosticDatabase as _AgnosticDatabase
+from motor.core import AgnosticLatentCommandCursor as _AgnosticLatentCommandCursor
 from pymongo.collation import Collation as PMCollation
 
 if TYPE_CHECKING:
@@ -13,28 +19,16 @@ if TYPE_CHECKING:
     from pymongo.read_preferences import Nearest, Primary, PrimaryPreferred, Secondary, SecondaryPreferred
     from pymongo.write_concern import WriteConcern
 
+# -- Fix the generic type of some motor types that emulate generics with __class_getitem__()
 
-__all__ = (
-    "AgnosticClient",
-    "AgnosticCollection",
-    "AgnosticDatabase",
-    "ClientProvider",
-    "DatabaseProvider",
-    "MongoProjection",
-    "MongoQuery",
-    "UpdateObject",
-    "CollationDict",
-    "Collation",
-    "CollectionOptions",
-    "DeleteOptions",
-    "FindOptions",
-    "IndexData",
-    "InsertManyOptions",
-    "InsertOneOptions",
-    "UpdateOneOptions",
-    "UpdateManyOptions",
-)
+AgnosticClient = _AgnosticClient[Any]
+AgnosticCollection = _AgnosticCollection[Any]
+AgnosticCommandCursor = _AgnosticCommandCursor[Any]
+AgnosticCursor = _AgnosticCursor[Any]
+AgnosticDatabase = _AgnosticDatabase[Any]
+AgnosticLatentCommandCursor = _AgnosticLatentCommandCursor[Any]
 
+# -- Typing
 
 MongoProjection = dict[str, Any]
 """
@@ -105,7 +99,7 @@ class DeleteOptions(TypedDict, total=False):
 
     collation: Mapping[str, Any] | Collation | None  # Default is None
     hint: str | Sequence[tuple[str, int | str | Mapping[str, Any]]] | None  # Default is None
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
     let: Mapping[str, Any] | None  # Default is None
     comment: Any | None  # Default is None
 
@@ -133,7 +127,7 @@ class FindOptions(TypedDict, total=False):
     show_record_id: bool | None  # Default is None
     snapshot: bool | None  # Default is None
     comment: Any | None  # Default is None
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
     allow_disk_use: bool | None  # Default is None
     let: bool | None  # Default is None
 
@@ -160,7 +154,7 @@ class InsertManyOptions(TypedDict, total=False):
     bypass_document_validation: bool  # Default is False
     comment: Any | None  # Default is None
     ordered: bool  # Default is True
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
 
 
 class InsertOneOptions(TypedDict, total=False):
@@ -169,7 +163,7 @@ class InsertOneOptions(TypedDict, total=False):
     """
 
     bypass_document_validation: bool  # Default is False
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
     comment: Any | None  # Default is None
 
 
@@ -183,7 +177,7 @@ class UpdateOneOptions(TypedDict, total=False):
     collation: Mapping[str, Any] | Collation | None  # Default is None
     array_filters: Sequence[Mapping[str, Any]]  # Default is None
     hint: str | Sequence[tuple[str, int | str | Mapping[str, Any]]] | None  # Default is None
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
     let: Mapping[str, Any] | None  # Default is None
     comment: Any | None  # Default is None
 
@@ -198,7 +192,7 @@ class UpdateManyOptions(TypedDict, total=False):
     bypass_document_validation: bool  # Default is None
     collation: Mapping[str, Any] | Collation | None  # Default is None
     hint: str | Sequence[tuple[str, int | str | Mapping[str, Any]]] | None  # Default is None
-    session: AgnosticCollection | None  # Default is None
+    session: AgnosticClientSession | None  # Default is None
     let: Mapping[str, Any] | None  # Default is None
     comment: Any | None  # Default is None
 
