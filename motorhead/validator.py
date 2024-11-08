@@ -11,8 +11,7 @@ __all__ = (
 )
 
 
-class ValidationError(Exception):
-    ...
+class ValidationError(Exception): ...
 
 
 TOwner = TypeVar("TOwner")

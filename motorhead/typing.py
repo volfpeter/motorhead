@@ -59,8 +59,7 @@ class Clause(Protocol):
     that can be consumed by MongoDB.
     """
 
-    def to_mongo(self) -> dict[str, Any]:
-        ...
+    def to_mongo(self) -> dict[str, Any]: ...
 
 
 ClauseOrMongoQuery = Union[Clause, MongoQuery]
@@ -209,8 +208,7 @@ class ClientProvider(Protocol):
     Client provider protocol for FastAPI database dependencies.
     """
 
-    def __call__(self) -> AgnosticClient:
-        ...
+    def __call__(self) -> AgnosticClient: ...
 
 
 class DatabaseProvider(Protocol):
@@ -218,5 +216,4 @@ class DatabaseProvider(Protocol):
     Database provider protocol for FastAPI database dependencies.
     """
 
-    def __call__(self) -> AgnosticDatabase:
-        ...
+    def __call__(self) -> AgnosticDatabase: ...
