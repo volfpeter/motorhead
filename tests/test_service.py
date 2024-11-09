@@ -23,7 +23,7 @@ from motorhead import (
 
 class Person(Document):
     name: str
-    lucky_number: int
+    lucky_number: int = -1
 
 
 QPerson = Q(Person)
@@ -31,11 +31,15 @@ QPerson = Q(Person)
 
 class PersonData(BaseDocument):
     name: str
-    lucky_number: int
+    lucky_number: int = -1
 
 
 class PersonService(Service[PersonData, PersonData]):
     collection_name = "person"
+
+
+class ExcludeUnsetPersonService(PersonService):
+    service_config = {"exclude_unset_on_insert": True}
 
 
 class PersonServiceWithRules(PersonService):
@@ -77,6 +81,11 @@ def person_service(*, database: AgnosticDatabase) -> PersonService:
 
 
 @pytest.fixture(scope="session")
+def exlude_unset_person_service(*, database: AgnosticDatabase) -> PersonService:
+    return ExcludeUnsetPersonService(database)
+
+
+@pytest.fixture(scope="session")
 def person_service_with_rules(*, database: AgnosticDatabase) -> PersonServiceWithRules:
     return PersonServiceWithRules(database)
 
@@ -98,7 +107,7 @@ async def make_person(
 
 
 class TestService:
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_create(self, *, person_service: PersonService) -> None:
         pd = PersonData(name="Jack", lucky_number=6)
         result = await person_service.create(pd)
@@ -114,7 +123,40 @@ class TestService:
         delete_result = await person_service.delete_by_id(p.id)
         assert delete_result.deleted_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_create_with_default(self, *, person_service: PersonService) -> None:
+        pd = PersonData(name="Jack")
+        result = await person_service.create(pd)
+        assert isinstance(result, dict)
+        assert result["name"] == pd.name
+        assert result["lucky_number"] == pd.lucky_number == -1
+        assert isinstance(result["_id"], ObjectId)
+        assert len(result) == 3
+
+        p = Person(**result)
+        assert isinstance(p.id, ObjectId)
+
+        delete_result = await person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1
+
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_create_with_exclude_unset(
+        self, *, exlude_unset_person_service: ExcludeUnsetPersonService
+    ) -> None:
+        pd = PersonData(name="Jack")
+        result = await exlude_unset_person_service.create(pd)
+        assert isinstance(result, dict)
+        assert result["name"] == pd.name
+        assert isinstance(result["_id"], ObjectId)
+        assert len(result) == 2
+
+        p = Person(**result)
+        assert isinstance(p.id, ObjectId)
+
+        delete_result = await exlude_unset_person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1
+
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_insert_one(self, *, person_service: PersonService) -> None:
         pd = PersonData(name="Jack", lucky_number=6)
         insert_result = await person_service.insert_one(pd)
@@ -133,7 +175,46 @@ class TestService:
         delete_result = await person_service.delete_by_id(p.id)
         assert delete_result.deleted_count == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_insert_one_with_default(self, *, person_service: PersonService) -> None:
+        pd = PersonData(name="Jack")
+        insert_result = await person_service.insert_one(pd)
+        assert isinstance(insert_result.inserted_id, ObjectId)
+
+        result = await person_service.get_by_id(insert_result.inserted_id)
+        assert isinstance(result, dict)
+        assert result["name"] == pd.name
+        assert result["lucky_number"] == pd.lucky_number == -1
+        assert isinstance(result["_id"], ObjectId)
+        assert len(result) == 3
+
+        p = Person(**result)
+        assert isinstance(p.id, ObjectId)
+
+        delete_result = await person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1
+
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_insert_one_with_exclude_unset(
+        self, *, exlude_unset_person_service: ExcludeUnsetPersonService
+    ) -> None:
+        pd = PersonData(name="Jack")
+        insert_result = await exlude_unset_person_service.insert_one(pd)
+        assert isinstance(insert_result.inserted_id, ObjectId)
+
+        result = await exlude_unset_person_service.get_by_id(insert_result.inserted_id)
+        assert isinstance(result, dict)
+        assert result["name"] == pd.name
+        assert isinstance(result["_id"], ObjectId)
+        assert len(result) == 2
+
+        p = Person(**result)
+        assert isinstance(p.id, ObjectId)
+
+        delete_result = await exlude_unset_person_service.delete_by_id(p.id)
+        assert delete_result.deleted_count == 1
+
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_insert_many(self, *, person_service: PersonService) -> None:
         pds = [PersonData(name=f"Person - {i}", lucky_number=i) for i in range(997)]
         insert_result = await person_service.insert_many(pds)
@@ -141,7 +222,7 @@ class TestService:
         assert await person_service.count_documents() == 997
         assert (await person_service.delete_many(None)).deleted_count == 997
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_update(self, *, person_service: PersonService) -> None:
         async with make_person(person_service) as p:
             p_id = p.id
@@ -160,7 +241,7 @@ class TestService:
             documents = await person_service.find().to_list(None)
             assert len(documents) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_update_by_id(self, *, person_service: PersonService) -> None:
         async with make_person(person_service) as p:
             p_id = p.id
@@ -184,7 +265,7 @@ class TestService:
             documents = await person_service.find().to_list(None)
             assert len(documents) == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_delete_rules_and_validators(
         self,
         *,

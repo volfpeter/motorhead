@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any
 
 import pymongo
@@ -38,7 +37,6 @@ def database(
     db_client: AgnosticClient,
     sync_db_client: pymongo.MongoClient[Any],
     docker_services: DockerServices,
-    event_loop: asyncio.AbstractEventLoop,
 ) -> AgnosticDatabase:
     docker_services.wait_until_responsive(
         timeout=30,
