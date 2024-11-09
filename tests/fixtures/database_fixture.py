@@ -1,9 +1,11 @@
-import asyncio
+from typing import Any
 
+import pymongo
 import pytest
-from motor.core import AgnosticClient, AgnosticDatabase
 from motor.motor_asyncio import AsyncIOMotorClient
 from pytest_docker.plugin import Services as DockerServices
+
+from motorhead.typing import AgnosticClient, AgnosticDatabase
 
 
 @pytest.fixture(scope="session")
@@ -16,7 +18,12 @@ def db_client(*, db_connect_string: str) -> AgnosticClient:
     return AsyncIOMotorClient(db_connect_string)
 
 
-def _ping_database(db_client: AgnosticClient) -> bool:
+@pytest.fixture(scope="session")
+def sync_db_client(*, db_connect_string: str) -> pymongo.MongoClient[Any]:
+    return pymongo.MongoClient(db_connect_string)
+
+
+def _ping_database(db_client: pymongo.MongoClient[Any]) -> bool:
     try:
         db_client.admin.command("ping")
         return True
@@ -28,13 +35,13 @@ def _ping_database(db_client: AgnosticClient) -> bool:
 def database(
     *,
     db_client: AgnosticClient,
+    sync_db_client: pymongo.MongoClient[Any],
     docker_services: DockerServices,
-    event_loop: asyncio.AbstractEventLoop,
 ) -> AgnosticDatabase:
     docker_services.wait_until_responsive(
         timeout=30,
         pause=0.5,
-        check=lambda: _ping_database(db_client),
+        check=lambda: _ping_database(sync_db_client),
     )
 
     return db_client["motorhead-test-db"]

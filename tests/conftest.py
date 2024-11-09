@@ -1,4 +1,7 @@
-from .fixtures.database_fixture import database as database
-from .fixtures.database_fixture import db_client as db_client
-from .fixtures.database_fixture import db_connect_string as db_connect_string
-from .fixtures.event_loop_fixture import event_loop as event_loop
+# -- Fixture registration
+from .fixtures.database_fixture import (
+    database,  # noqa: F401
+    db_client,  # noqa: F401
+    db_connect_string,  # noqa: F401
+    sync_db_client,  # noqa: F401
+)

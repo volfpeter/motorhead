@@ -1,3 +1,0 @@
-# ObjectId
-
-::: motorhead.model.objectid

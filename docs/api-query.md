@@ -1,3 +1,0 @@
-# Query
-
-::: motorhead.query

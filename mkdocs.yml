@@ -18,6 +18,7 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - navigation.indexes
     - navigation.instant
     - navigation.tracking
     - search.suggest
@@ -45,15 +46,15 @@ nav:
   - Examples:
       - FastAPI: fastapi-example.md
   - API Reference:
-      - api-service.md
-      - api-query.md
-      - api-operator.md
+      - api/service.md
+      - api/query.md
+      - api/operator.md
       - Model:
-          - api-model-document.md
-          - api-model-objectid.md
-          - api-model-utcdatetime.md
-          - api-model-deleteresultmodel.md
-      - api-delete-rule.md
-      - api-validator.md
-      - api-typing.md
-      - api-bound-method-wrapper.md
+          - api/model/document.md
+          - api/model/objectid.md
+          - api/model/utcdatetime.md
+          - api/model/deleteresultmodel.md
+      - api/delete-rule.md
+      - api/validator.md
+      - api/typing.md
+      - api/bound-method-wrapper.md

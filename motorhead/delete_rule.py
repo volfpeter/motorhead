@@ -14,8 +14,7 @@ __all__ = (
 )
 
 
-class DeleteError(Exception):
-    ...
+class DeleteError(Exception): ...
 
 
 TOwner = TypeVar("TOwner")

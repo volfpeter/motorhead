@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, nullcontext
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, get_args
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypedDict, TypeVar, get_args
 
 from bson import ObjectId
 from pydantic import BaseModel
@@ -12,16 +12,14 @@ from .operator import ensure_dict
 from .typing import ClauseOrMongoQuery
 
 if TYPE_CHECKING:
-    from motor.core import (
-        AgnosticClientSession,
-        AgnosticCursor,
-        AgnosticLatentCommandCursor,
-    )
-
     from .typing import (
         AgnosticClient,
+        AgnosticClientSession,
         AgnosticCollection,
+        AgnosticCommandCursor,
+        AgnosticCursor,
         AgnosticDatabase,
+        AgnosticLatentCommandCursor,
         Collation,
         CollectionOptions,
         DeleteOptions,
@@ -58,6 +56,20 @@ class ServiceException(Exception):
     ...
 
 
+class ServiceConfig(TypedDict, total=False):
+    """Service configuration."""
+
+    exclude_unset_on_insert: bool
+    """Whether to exclude fields that have not been explicitly set on the data during insert operations."""
+
+
+class _default_service_config:
+    """Default service configuration."""
+
+    exclude_unset_on_insert: ClassVar[bool] = False
+    """See `ServiceConfig.exclude_unset_on_insert` for details."""
+
+
 class Service(Generic[TInsert, TUpdate]):
     """
     Base service with typed utility methods for MongoDB (`motor` asyncio).
@@ -81,20 +93,23 @@ class Service(Generic[TInsert, TUpdate]):
         "_supports_transactions",
     )
 
-    collection_name: str
+    collection_name: ClassVar[str]
     """
     The name of the collection the service operates on. Must be set by subclasses.
     """
 
-    collection_options: CollectionOptions | None = None
+    collection_options: ClassVar[CollectionOptions | None] = None
     """
     Optional `CollectionOptions` dict.
     """
 
-    indexes: dict[str, IndexData] | None = None
+    indexes: ClassVar[dict[str, IndexData] | None] = None
     """
     The full description of the indexes (if any) of the collection.
     """
+
+    service_config: ClassVar[ServiceConfig] = {}
+    """Service configuration. Partial override of parent class configuration is not supported."""
 
     def __init__(self, database: AgnosticDatabase) -> None:
         """
@@ -145,7 +160,7 @@ class Service(Generic[TInsert, TUpdate]):
         pipeline: Sequence[dict[str, Any]],
         session: AgnosticClientSession | None = None,
         **kwargs: Any,
-    ) -> AgnosticLatentCommandCursor:
+    ) -> AgnosticCommandCursor:
         """
         Performs an aggregation.
 
@@ -172,7 +187,7 @@ class Service(Generic[TInsert, TUpdate]):
             The number of matching documents.
         """
         query = {} if query is None else ensure_dict(query)
-        return await self.collection.count_documents(query, **(options or {}))  # type: ignore[no-any-return]
+        return await self.collection.count_documents(query, **(options or {}))
 
     async def create_index(
         self,
@@ -198,7 +213,7 @@ class Service(Generic[TInsert, TUpdate]):
             collation: A `Collation` instance.
             sparse: Whether to omit documents from the index that doesn't have the indexed field.
         """
-        return await self.collection.create_index(  # type: ignore[no-any-return]
+        return await self.collection.create_index(
             keys,
             name=name,
             unique=unique,
@@ -244,7 +259,7 @@ class Service(Generic[TInsert, TUpdate]):
             index_or_name: The index to drop.
             session: An optional session to use.
         """
-        return await self.collection.drop_index(  # type: ignore[no-any-return]
+        return await self.collection.drop_index(
             index_or_name,
             session=session,
             **kwargs,
@@ -257,7 +272,7 @@ class Service(Generic[TInsert, TUpdate]):
         Arguments:
             session: An optional session to use.
         """
-        return await self.collection.drop_indexes(session, **kwargs)  # type: ignore[no-any-return]
+        return await self.collection.drop_indexes(session, **kwargs)
 
     def list_indexes(
         self,
@@ -327,7 +342,10 @@ class Service(Generic[TInsert, TUpdate]):
             opts["session"] = session
             ctxman = (
                 nullcontext
-                if session.in_transaction or not await self.supports_transactions()
+                if (
+                    session.in_transaction  # type: ignore[truthy-function]
+                    or not await self.supports_transactions()
+                )
                 else session.start_transaction
             )
 
@@ -355,7 +373,7 @@ class Service(Generic[TInsert, TUpdate]):
                         ids,  # type: ignore[arg-type] # can not be None if has_ids is True
                     )
 
-                return result  # type: ignore[no-any-return]
+                return result
 
     async def delete_one(
         self,
@@ -391,7 +409,10 @@ class Service(Generic[TInsert, TUpdate]):
             opts["session"] = session
             ctxman = (
                 nullcontext
-                if session.in_transaction or not await self.supports_transactions()
+                if (
+                    session.in_transaction  # type: ignore[truthy-function]
+                    or not await self.supports_transactions()
+                )
                 else session.start_transaction
             )
 
@@ -413,7 +434,7 @@ class Service(Generic[TInsert, TUpdate]):
                 if ids is not None:
                     await self._validate_post_delete(session, ids)
 
-                return result  # type: ignore[no-any-return]
+                return result
 
     async def exists(self, id: ObjectId, *, options: FindOptions | None = None) -> bool:
         """
@@ -490,7 +511,7 @@ class Service(Generic[TInsert, TUpdate]):
             A single matching document or `None` if there are no matches.
         """
         query = {} if query is None else ensure_dict(query)
-        return await self.collection.find_one(query, projection, **(options or {}))  # type: ignore[no-any-return]
+        return await self.collection.find_one(query, projection, **(options or {}))
 
     async def get_by_id(
         self,
@@ -552,7 +573,7 @@ class Service(Generic[TInsert, TUpdate]):
             Exception: If any of the documents is invalid.
         """
         insert_data = [await self._prepare_for_insert(d) for d in data]
-        return await self.collection.insert_many(  # type: ignore[no-any-return]
+        return await self.collection.insert_many(
             insert_data,
             **(options or {}),
         )
@@ -573,7 +594,7 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        return await self.collection.insert_one(  # type: ignore[no-any-return]
+        return await self.collection.insert_one(
             await self._prepare_for_insert(data),
             **(options or {}),
         )
@@ -653,7 +674,7 @@ class Service(Generic[TInsert, TUpdate]):
             Exception: If the data is invalid.
         """
         query = {} if query is None else ensure_dict(query)
-        return await self.collection.update_many(  # type: ignore[no-any-return]
+        return await self.collection.update_many(
             query,
             await self._prepare_for_update(changes, query),
             **(options or {}),
@@ -681,7 +702,7 @@ class Service(Generic[TInsert, TUpdate]):
             Exception: If the data is invalid.
         """
         query = {} if query is None else ensure_dict(query)
-        return await self.collection.update_one(  # type: ignore[no-any-return]
+        return await self.collection.update_one(
             query,
             await self._prepare_for_update(changes, query),
             **(options or {}),
@@ -726,9 +747,14 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        return self._mongo_dump(data)
+        return self._mongo_dump(
+            data,
+            exclude_unset=self.service_config.get(
+                "exclude_unset_on_insert", _default_service_config.exclude_unset_on_insert
+            ),
+        )
 
-    async def _convert_for_update(self, data: TUpdate) -> UpdateObject | Sequence[UpdateObject]:
+    async def _convert_for_update(self, data: TUpdate) -> UpdateObject:
         """
         Converts the given piece of data into an update object.
 
@@ -743,7 +769,7 @@ class Service(Generic[TInsert, TUpdate]):
         Raises:
             Exception: If the data is invalid.
         """
-        return {"$set": self._mongo_dump(data)}
+        return {"$set": self._mongo_dump(data, exclude_unset=True)}
 
     def _create_collection(self) -> AgnosticCollection:
         """
@@ -779,7 +805,7 @@ class Service(Generic[TInsert, TUpdate]):
         """
         if session is None:
             # Return a context manager that actually starts a session.
-            return self.client.start_session  # type: ignore[no-any-return]
+            return self.client.start_session
 
         async def start_session() -> AbstractAsyncContextManager[AgnosticClientSession]:
             @asynccontextmanager
@@ -790,12 +816,13 @@ class Service(Generic[TInsert, TUpdate]):
 
         return start_session
 
-    def _mongo_dump(self, data: BaseModel) -> dict[str, Any]:
+    def _mongo_dump(self, data: BaseModel, *, exclude_unset: bool) -> dict[str, Any]:
         """
         Dumps the given model instance for consumption by MongoDB.
 
         Arguments:
             data: The model instance to dump.
+            exclude_unset: Whether to exclude fields that have not been explicitly set on the data.
 
         Returns:
             The MongoDB-compatible, dumped dictionary.
@@ -807,13 +834,13 @@ class Service(Generic[TInsert, TUpdate]):
                 for k, v in data.model_dump(
                     include=objectid_fields,
                     by_alias=True,
-                    exclude_unset=True,
+                    exclude_unset=exclude_unset,
                 ).items()
             },
             **data.model_dump(
                 exclude=objectid_fields,
                 by_alias=True,
-                exclude_unset=True,
+                exclude_unset=exclude_unset,
             ),
         }
 
@@ -837,9 +864,7 @@ class Service(Generic[TInsert, TUpdate]):
         await self._validate_insert(data, query)
         return await self._convert_for_insert(data)
 
-    async def _prepare_for_update(
-        self, data: TUpdate, query: ClauseOrMongoQuery | None
-    ) -> UpdateObject | Sequence[UpdateObject]:
+    async def _prepare_for_update(self, data: TUpdate, query: ClauseOrMongoQuery | None) -> UpdateObject:
         """
         Validates the given piece of data and converts it into an update object.
 

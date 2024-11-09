@@ -31,7 +31,7 @@ tracker = "https://github.com/volfpeter/motorhead/issues"
 
 [tool.poetry]
 name = "motorhead"
-version = "0.2408.0"
+version = "0.2411.0"
 description = "Async MongoDB with vanilla Pydantic v2+ - made easy."
 authors = ["Peter Volf <do.volfp@gmail.com>"]
 readme = "README.md"
@@ -39,17 +39,17 @@ packages = [{include = "motorhead"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-motor = "~3.1.0"
+motor = "^3.6.0"
 pydantic = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
-mkdocs-material = "^9.5.9"
-mkdocstrings = {extras = ["python"], version = "^0.24.0"}
-mypy = "^1.8.0"
-ruff = "^0.2.1"
-poethepoet = "^0.24.4"
-pytest = "^8.0.0"
-pytest-asyncio = "^0.23.5"
+mkdocs-material = "^9.5.44"
+mkdocstrings = {extras = ["python"], version = "^0.27.0"}
+mypy = "^1.13.0"
+ruff = "^0.7.3"
+poethepoet = "^0.29.0"
+pytest = "^8.3.3"
+pytest-asyncio = "^0.24.0"
 pytest-docker = "^3.1.1"
 pytest-random-order = "^1.1.1"
 
@@ -96,7 +96,7 @@ lint = "ruff check ."
 mypy = "mypy ."
 format = "ruff format ."
 lint-fix = "ruff . --fix"
-test = "python -m pytest tests --random-order"
+test = "python -m pytest tests"
 
 static-checks.sequence = ["lint", "check-format", "mypy"]
 static-checks.ignore_fail = "return_non_zero"

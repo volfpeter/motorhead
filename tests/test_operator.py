@@ -47,8 +47,7 @@ class _BaseKeyValueOperatorTest:
 
 class TestClauseOperator:
     def test_default_subclassing(self) -> None:
-        class CO(op.ClauseOperator):
-            ...
+        class CO(op.ClauseOperator): ...
 
         assert CO._operator == "$co"
 
@@ -80,8 +79,7 @@ class TestClauseOperator:
         ),
     )
     def test_to_mongo_with_default_subclassing(self, *, clauses: Sequence["Clause"]) -> None:
-        class CO(op.ClauseOperator):
-            ...
+        class CO(op.ClauseOperator): ...
 
         co = CO(*clauses)
         co_clauses = list(co.clauses)
@@ -92,8 +90,7 @@ class TestClauseOperator:
 
 class TestKeyValueOperator:
     def test_default_subclassing(self) -> None:
-        class KVO(op.KeyValueOperator):
-            ...
+        class KVO(op.KeyValueOperator): ...
 
         assert KVO._operator == "$kvo"
 
@@ -124,8 +121,7 @@ class TestKeyValueOperator:
         ),
     )
     def test_to_mongo_with_default_subclassing(self, *, property_name: str, property_value: Any) -> None:
-        class KVO(op.KeyValueOperator):
-            ...
+        class KVO(op.KeyValueOperator): ...
 
         kvo = KVO(property_name, property_value)
         assert kvo.key == property_name
