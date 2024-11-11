@@ -37,6 +37,7 @@ from .delete_rule import DeleteRule
 from .validator import Validator
 
 __all__ = (
+    "BaseService",
     "DeleteResult",
     "InsertManyResult",
     "InsertOneResult",
@@ -46,6 +47,7 @@ __all__ = (
 
 TInsert = TypeVar("TInsert", bound=BaseModel)
 TUpdate = TypeVar("TUpdate", bound=BaseModel)
+TPrimaryKey = TypeVar("TPrimaryKey")
 
 
 class ServiceException(Exception):
@@ -70,7 +72,7 @@ class _default_service_config:
     """See `ServiceConfig.exclude_unset_on_insert` for details."""
 
 
-class Service(Generic[TInsert, TUpdate]):
+class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
     """
     Base service with typed utility methods for MongoDB (`motor` asyncio).
 
@@ -289,7 +291,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def delete_by_id(
         self,
-        id: ObjectId,
+        id: TPrimaryKey,
         *,
         options: DeleteOptions | None = None,
     ) -> DeleteResult:
@@ -349,9 +351,8 @@ class Service(Generic[TInsert, TUpdate]):
                 else session.start_transaction
             )
 
-            ids: list[ObjectId] | None = (
-                await self.find_ids(query, session=session) if self._has_delete_rules() else None
-            )
+            ids = await self.find_ids(query, session=session) if self._has_delete_rules() else None
+
             has_ids = ids is not None and len(ids) > 0
 
             async with ctxman():
@@ -416,9 +417,7 @@ class Service(Generic[TInsert, TUpdate]):
                 else session.start_transaction
             )
 
-            ids: list[ObjectId] | None = (
-                await self.find_ids(query, session=session) if self._has_delete_rules() else None
-            )
+            ids = await self.find_ids(query, session=session) if self._has_delete_rules() else None
 
             async with ctxman():
                 if ids is not None:
@@ -436,7 +435,7 @@ class Service(Generic[TInsert, TUpdate]):
 
                 return result
 
-    async def exists(self, id: ObjectId, *, options: FindOptions | None = None) -> bool:
+    async def exists(self, id: TPrimaryKey, *, options: FindOptions | None = None) -> bool:
         """
         Returns whether the document with the given ID exists.
 
@@ -475,7 +474,7 @@ class Service(Generic[TInsert, TUpdate]):
         query: ClauseOrMongoQuery | None,
         *,
         session: AgnosticClientSession | None = None,
-    ) -> list[ObjectId]:
+    ) -> list[TPrimaryKey]:
         """
         Returns the IDs of all documents that match the given query.
 
@@ -515,7 +514,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def get_by_id(
         self,
-        id: ObjectId,
+        id: TPrimaryKey,
         projection: MongoProjection | None = None,
         *,
         options: FindOptions | None = None,
@@ -524,7 +523,7 @@ class Service(Generic[TInsert, TUpdate]):
         Returns the document with the given ID if it exists.
 
         Arguments:
-            id: The ID of the queried document. Must be an `ObjectId`, not a `str`.
+            id: The ID of the queried document.
             projection: Optional projection.
             options: Query options, see the arguments of `collection.find()` for details.
 
@@ -601,7 +600,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def update(
         self,
-        id: ObjectId,
+        id: TPrimaryKey,
         changes: TUpdate,
         *,
         options: UpdateOneOptions | None = None,
@@ -631,7 +630,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     async def update_by_id(
         self,
-        id: ObjectId,
+        id: TPrimaryKey,
         changes: TUpdate,
         *,
         options: UpdateOneOptions | None = None,
@@ -777,7 +776,9 @@ class Service(Generic[TInsert, TUpdate]):
         """
         return self._database.get_collection(self.collection_name, **(self.collection_options or {}))
 
-    def _delete_rules(self) -> Generator[DeleteRule["Service[TInsert, TUpdate]"], None, None]:
+    def _delete_rules(
+        self,
+    ) -> Generator[DeleteRule["BaseService[TInsert, TUpdate, TPrimaryKey]", TPrimaryKey], None, None]:
         """
         Generator that yields the delete rules that are registered on this service
         in the order they are present in `__class__.__dict__`.
@@ -899,7 +900,9 @@ class Service(Generic[TInsert, TUpdate]):
             if "insert" in validator.config:
                 await validator(self, data, query)
 
-    async def _validate_deny_delete(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
+    async def _validate_deny_delete(
+        self, session: AgnosticClientSession, ids: Sequence[TPrimaryKey]
+    ) -> None:
         """
         Executes all "deny" delete rules.
 
@@ -916,7 +919,9 @@ class Service(Generic[TInsert, TUpdate]):
             if isinstance(rule, DeleteRule) and rule.config == "deny":
                 await rule(self, session, ids)
 
-    async def _validate_pre_delete(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
+    async def _validate_pre_delete(
+        self, session: AgnosticClientSession, ids: Sequence[TPrimaryKey]
+    ) -> None:
         """
         Executes all "pre" delete rules.
 
@@ -933,7 +938,9 @@ class Service(Generic[TInsert, TUpdate]):
             if isinstance(rule, DeleteRule) and rule.config == "pre":
                 await rule(self, session, ids)
 
-    async def _validate_post_delete(self, session: AgnosticClientSession, ids: Sequence[ObjectId]) -> None:
+    async def _validate_post_delete(
+        self, session: AgnosticClientSession, ids: Sequence[TPrimaryKey]
+    ) -> None:
         """
         Executes all "post" delete rules.
 
@@ -970,7 +977,7 @@ class Service(Generic[TInsert, TUpdate]):
 
     def _validators(
         self,
-    ) -> Generator[Validator["Service[TInsert, TUpdate]", TInsert | TUpdate], None, None]:
+    ) -> Generator[Validator["BaseService[TInsert, TUpdate, TPrimaryKey]", TInsert | TUpdate], None, None]:
         """
         Generator that yields the validators that are registered on this service
         in the order they are present in `__class__.__dict__`.
@@ -978,3 +985,7 @@ class Service(Generic[TInsert, TUpdate]):
         for validator in self.__class__.__dict__.values():
             if isinstance(validator, Validator):
                 yield validator
+
+
+class Service(BaseService[TInsert, TUpdate, ObjectId]):
+    """Base service for documents with an `ObjectId` `_id`."""

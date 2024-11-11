@@ -1,7 +1,6 @@
 from collections.abc import Callable, Coroutine, Sequence
 from typing import Literal, TypeVar
 
-from bson.objectid import ObjectId
 from motor.core import AgnosticClientSession
 
 from .bound_method_wrapper import BoundMethodWrapper
@@ -18,17 +17,18 @@ class DeleteError(Exception): ...
 
 
 TOwner = TypeVar("TOwner")
+TPrimaryKey = TypeVar("TPrimaryKey")
 DeleteConfig = Literal["deny", "pre", "post"]
 """
 Delete rule configuration that specifies when a given delete rule must be executed.
 """
 
 
-class DeleteRule(BoundMethodWrapper[TOwner, [AgnosticClientSession, Sequence[ObjectId]], DeleteConfig]):
+class DeleteRule(BoundMethodWrapper[TOwner, [AgnosticClientSession, Sequence[TPrimaryKey]], DeleteConfig]):
     """
     Delete rule wrapper.
 
-    Delete rules receive an `AgnosticClientSession` instance and a list of `ObjectId`s,
+    Delete rules receive an `AgnosticClientSession` instance and a list of document IDs,
     and implement any deny, pre- or post-delete behavior.
 
     Delete rule execution sequence:
@@ -68,8 +68,8 @@ class DeleteRule(BoundMethodWrapper[TOwner, [AgnosticClientSession, Sequence[Obj
 def delete_rule(
     config: DeleteConfig = "pre",
 ) -> Callable[
-    [Callable[[TOwner, AgnosticClientSession, Sequence[ObjectId]], Coroutine[None, None, None]]],
-    "DeleteRule[TOwner]",
+    [Callable[[TOwner, AgnosticClientSession, Sequence[TPrimaryKey]], Coroutine[None, None, None]]],
+    "DeleteRule[TOwner, TPrimaryKey]",
 ]:
     """
     Decorator that converts a `Service` method into a `DeleteRule` that is then
@@ -80,8 +80,9 @@ def delete_rule(
     """
 
     def decorator(
-        func: Callable[[TOwner, AgnosticClientSession, Sequence[ObjectId]], Coroutine[None, None, None]], /
-    ) -> "DeleteRule[TOwner]":
+        func: Callable[[TOwner, AgnosticClientSession, Sequence[TPrimaryKey]], Coroutine[None, None, None]],
+        /,
+    ) -> "DeleteRule[TOwner, TPrimaryKey]":
         return DeleteRule(wrapped=func, config=config)
 
     return decorator
