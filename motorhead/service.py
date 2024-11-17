@@ -989,3 +989,5 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
 
 class Service(BaseService[TInsert, TUpdate, ObjectId]):
     """Base service for documents with an `ObjectId` `_id`."""
+
+    __slots__ = ()
