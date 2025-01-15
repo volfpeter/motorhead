@@ -659,7 +659,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         options: UpdateManyOptions | None = None,
     ) -> UpdateResult:
         """
-        The default `delete_many()` implementation of the service.
+        Updates the documents that match the given query.
 
         Arguments:
             query: Query that matches the documents that should be updated.
@@ -687,7 +687,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         options: UpdateOneOptions | None = None,
     ) -> UpdateResult:
         """
-        The default `delete_one()` implementation of the service.
+        Updates the first document that matches the given query.
 
         Arguments:
             query: Query that matches the document that should be updated.
@@ -733,9 +733,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
 
     async def _convert_for_insert(self, data: TInsert) -> dict[str, Any]:
         """
-        Converts the given piece of the into its database representation.
-
-        The default implementation is `self._mongo_dump(data)`.
+        Converts the given piece of data to its database representation.
 
         Arguments:
             data: The data to be inserted.
@@ -756,8 +754,6 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
     async def _convert_for_update(self, data: TUpdate) -> UpdateObject:
         """
         Converts the given piece of data into an update object.
-
-        The default implementation is `{"$set": self._mongo_dump(data)}`.
 
         Arguments:
             data: The update data.
@@ -791,11 +787,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         """
         Returns whether the service has any delete rules.
         """
-        for rule in self.__class__.__dict__.values():
-            if isinstance(rule, DeleteRule):
-                return True
-
-        return False
+        return any(isinstance(rule, DeleteRule) for rule in self.__class__.__dict__.values())
 
     def _get_session_context_manager(
         self,

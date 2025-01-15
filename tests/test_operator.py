@@ -315,3 +315,19 @@ class TestSize(_BaseKeyValueOperatorTest):
         else:
             with pytest.raises(ValueError):
                 self.Operator(key, value)
+
+
+# -- Evaluation operators
+
+
+class TestRegex(_BaseKeyValueOperatorTest):
+    Operator = op.Regex
+    operator_string = "$regex"
+
+    @pytest.mark.parametrize(*key_value_operator_fixtures)
+    def test_to_mongo(self, *, key: str, value: Any) -> None:
+        if isinstance(value, str):
+            super().test_to_mongo(key=key, value=value)
+        else:
+            with pytest.raises(ValueError):
+                self.Operator(key, value)

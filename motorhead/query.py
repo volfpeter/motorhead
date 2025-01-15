@@ -19,6 +19,7 @@ from .operator import (
     Ne,
     NotIn,
     Or,
+    Regex,
     Size,
     Type,
 )
@@ -119,6 +120,15 @@ class Field:
         """
         return Query(NotIn(self._name, value))
 
+    def Regex(self, value: str) -> Query:
+        """
+        `$regex` operator.
+
+        Arguments:
+            value: The regular expression.
+        """
+        return Query(Regex(self._name, value))
+
     def Size(self, value: int) -> Query:
         """
         `$size` operator.
@@ -155,6 +165,7 @@ class Query:
         self._clause = clause
 
     def __and__(self, value: Clause) -> Query:
+        """The `&` operator, produces a `Query`."""
         result = self.clone()
         clause = value._clause if isinstance(value, Query) else value
         if clause is None:
@@ -167,6 +178,7 @@ class Query:
         return result
 
     def __or__(self, value: Clause) -> Query:
+        """The `|` operator, produces a `Query`."""
         result = self.clone()
         clause = value._clause if isinstance(value, Query) else value
         if clause is None:
