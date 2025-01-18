@@ -1,8 +1,12 @@
-from collections.abc import Callable, Coroutine
-from typing import Literal, TypeVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal, TypeVar
 
 from .bound_method_wrapper import BoundMethodWrapper
 from .typing import ClauseOrMongoQuery
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Coroutine
 
 __all__ = (
     "ValidationError",

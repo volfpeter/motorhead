@@ -49,6 +49,7 @@ nav:
       - api/service.md
       - api/query.md
       - api/operator.md
+      - api/aggregation.md
       - Model:
           - api/model/document.md
           - api/model/objectid.md
