@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from pydantic import BaseModel
 
@@ -23,12 +23,14 @@ from .operator import (
     Size,
     Type,
 )
-from .typing import Clause
-
-_T = TypeVar("_T", bound=BaseModel)
 
 if TYPE_CHECKING:
-    from .typing import MongoQuery
+    from typing import Any
+
+    from .typing import Clause, MongoQuery
+
+
+_T = TypeVar("_T", bound=BaseModel)
 
 
 class Field:

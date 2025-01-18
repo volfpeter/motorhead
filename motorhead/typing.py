@@ -12,6 +12,10 @@ from motor.core import AgnosticCursor as _AgnosticCursor
 from motor.core import AgnosticDatabase as _AgnosticDatabase
 from motor.core import AgnosticLatentCommandCursor as _AgnosticLatentCommandCursor
 from pymongo.collation import Collation as PMCollation
+from pymongo.results import DeleteResult as DeleteResult
+from pymongo.results import InsertManyResult as InsertManyResult
+from pymongo.results import InsertOneResult as InsertOneResult
+from pymongo.results import UpdateResult as UpdateResult
 
 if TYPE_CHECKING:
     from bson.codec_options import CodecOptions

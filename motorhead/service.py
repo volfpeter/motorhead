@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, asynccontextmanager, nullcontext
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypedDict, TypeVar, get_args
+from typing import TYPE_CHECKING, Generic, TypedDict, TypeVar, get_args
 
 from bson import ObjectId
 from pydantic import BaseModel
-from pymongo.results import DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
 
+from .delete_rule import DeleteRule
 from .operator import ensure_dict
-from .typing import ClauseOrMongoQuery
+from .validator import Validator
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
+    from typing import Any, ClassVar
+
     from .typing import (
         AgnosticClient,
         AgnosticClientSession,
@@ -20,29 +22,30 @@ if TYPE_CHECKING:
         AgnosticCursor,
         AgnosticDatabase,
         AgnosticLatentCommandCursor,
+        ClauseOrMongoQuery,
         Collation,
         CollectionOptions,
         DeleteOptions,
+        DeleteResult,
         FindOptions,
         IndexData,
         InsertManyOptions,
+        InsertManyResult,
         InsertOneOptions,
+        InsertOneResult,
         MongoProjection,
         UpdateManyOptions,
         UpdateObject,
         UpdateOneOptions,
+        UpdateResult,
     )
 
-from .delete_rule import DeleteRule
-from .validator import Validator
 
 __all__ = (
     "BaseService",
-    "DeleteResult",
-    "InsertManyResult",
-    "InsertOneResult",
     "Service",
-    "UpdateResult",
+    "ServiceConfig",
+    "ServiceException",
 )
 
 TInsert = TypeVar("TInsert", bound=BaseModel)
