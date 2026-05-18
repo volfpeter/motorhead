@@ -1,7 +1,7 @@
 from collections.abc import Callable, Coroutine, Sequence
 from typing import Literal, TypeVar
 
-from motor.core import AgnosticClientSession
+from pymongo.asynchronous.client_session import AsyncClientSession as AgnosticClientSession
 
 from .bound_method_wrapper import BoundMethodWrapper
 

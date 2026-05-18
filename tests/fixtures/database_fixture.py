@@ -2,7 +2,7 @@ from typing import Any
 
 import pymongo
 import pytest
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from pytest_docker.plugin import Services as DockerServices
 
 from motorhead.typing import AgnosticClient, AgnosticDatabase
@@ -15,7 +15,7 @@ def db_connect_string(*, docker_ip: str, docker_services: DockerServices) -> str
 
 @pytest.fixture(scope="session")
 def db_client(*, db_connect_string: str) -> AgnosticClient:
-    return AsyncIOMotorClient(db_connect_string)
+    return AsyncMongoClient(db_connect_string)
 
 
 @pytest.fixture(scope="session")

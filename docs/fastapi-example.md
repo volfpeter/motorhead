@@ -102,7 +102,7 @@ from datetime import datetime, timezone
 from typing import Any, cast
 
 from bson import ObjectId
-from motor.core import AgnosticClientSession
+from motorhead.typing import AgnosticClientSession
 from motorhead import (
     ClauseOrMongoQuery,
     CollectionOptions,
@@ -217,7 +217,7 @@ from datetime import datetime, timezone
 from typing import Any, cast
 
 from bson import ObjectId
-from motor.core import AgnosticClientSession
+from motorhead.typing import AgnosticClientSession
 from motorhead import (
     ClauseOrMongoQuery,
     CollectionOptions,
@@ -382,8 +382,8 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 
 from fastapi import FastAPI
-from motor.core import AgnosticClient, AgnosticDatabase
-from motor.motor_asyncio import AsyncIOMotorClient
+from motorhead.typing import AgnosticClient, AgnosticDatabase
+from pymongo import AsyncMongoClient
 
 
 @lru_cache(maxsize=1)
@@ -391,7 +391,7 @@ def get_database() -> AgnosticDatabase:
     """Database provider dependency for the created API."""
     mongo_connection_string = "mongodb://127.0.0.1:27017"
     database_name = "tree-db"
-    client: AgnosticClient = AsyncIOMotorClient(mongo_connection_string)
+    client: AgnosticClient = AsyncMongoClient(mongo_connection_string)
     return client[database_name]
 
 

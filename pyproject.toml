@@ -1,5 +1,6 @@
 [project]
 name = "motorhead"
+version = "0.2501.2"
 description = "Async MongoDB with vanilla Pydantic v2+ - made easy."
 readme = "README.md"
 license = { text = "MIT" }
@@ -7,7 +8,7 @@ authors = [
     { name = "Peter Volf", email = "do.volfp@gmail.com" },
 ]
 requires-python = ">=3.10"
-dependencies = ["pydantic", "motor"]
+dependencies = ["pydantic", "pymongo"]
 classifiers = [
     "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
@@ -39,7 +40,7 @@ packages = [{include = "motorhead"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-motor = "^3.6.0"
+pymongo = ">=4.11.0"
 pydantic = ">=2.1.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -58,10 +59,6 @@ typing-extensions = "^4.12.2"
 strict = true
 show_error_codes = true
 exclude = ["tree_app"]
-
-[[tool.mypy.overrides]]
-module = ["motor.*"]
-ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 108
