@@ -41,7 +41,7 @@ The project depends on `pymongo` (the official async MongoDB driver) and `pydant
 
 ## Development
 
-Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
+Use `ruff` for code formatting and linting, `mypy` for static code analysis, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
 
 The documentation is built with `mkdocs-material` and `mkdocstrings`.
 
