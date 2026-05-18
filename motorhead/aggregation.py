@@ -4,9 +4,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from typing import TypeAlias
-
-    from typing_extensions import Self
+    from typing import Self, TypeAlias
 
     from .typing import Clause
 

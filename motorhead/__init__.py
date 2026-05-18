@@ -50,3 +50,5 @@ from .typing import UpdateResult as UpdateResult
 from .validator import ValidationError as ValidationError
 from .validator import Validator as Validator
 from .validator import validator as validator
+
+__version__ = "1.0.0"
