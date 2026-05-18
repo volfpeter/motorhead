@@ -92,7 +92,7 @@ format = "ruff format --check ."
 format-fix = "ruff format ."
 
 lint = "ruff check ."
-lint-fix = "ruff . --fix"
+lint-fix = "ruff check . --fix"
 
 mypy = "mypy ."
 
