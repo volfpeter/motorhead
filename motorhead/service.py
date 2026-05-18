@@ -11,7 +11,7 @@ from .operator import ensure_dict
 from .validator import Validator
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterable, Mapping, Sequence
+    from collections.abc import AsyncGenerator, Callable, Generator, Iterable, Mapping, Sequence
     from typing import Any, ClassVar
 
     from .typing import (
@@ -77,15 +77,15 @@ class _default_service_config:
 
 class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
     """
-    Base service with typed utility methods for MongoDB (`motor` asyncio).
+    Base service with typed utility methods for MongoDB.
 
-    The service provides a limited subset of `motor`'s capabilities.
+    The service provides a limited subset of `pymongo`'s capabilities.
 
-    For undocumented keyword arguments, please see the `motor` or `pymongo` documentation.
+    For undocumented keyword arguments, please see the `pymongo` documentation.
 
     For delete rule support, see `DeleteRule`, `delete_many()`, and `delete_one()`.
 
-    For insert and update data validation, see `Validator`, `_validate_insert()`, and `_validate_update()`
+    For insert and update data validation, see `Validator`, `_validate_insert()`, and `_validate_update()`.
 
     Class attributes:
         collection_name: The name of the collection the service operates on. Must be set by subclasses.
@@ -160,7 +160,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
 
         return self._supports_transactions
 
-    def aggregate(
+    async def aggregate(
         self,
         pipeline: Sequence[dict[str, Any]],
         session: AgnosticClientSession | None = None,
@@ -176,7 +176,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
             pipeline: The aggregation pipeline.
             session: An optional session to use.
         """
-        return self.collection.aggregate(pipeline, session=session, **kwargs)
+        return await self.collection.aggregate(pipeline, session=session, **kwargs)
 
     async def count_documents(
         self, query: ClauseOrMongoQuery | None = None, *, options: FindOptions | None = None
@@ -279,7 +279,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         """
         return await self.collection.drop_indexes(session, **kwargs)
 
-    def list_indexes(
+    async def list_indexes(
         self,
         session: AgnosticClientSession | None = None,
         **kwargs: Any,
@@ -290,7 +290,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         Arguments:
             session: An optional session to use.
         """
-        return self.collection.list_indexes(session, **kwargs)
+        return await self.collection.list_indexes(session, **kwargs)
 
     async def delete_by_id(
         self,
@@ -342,23 +342,19 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
-        async with await session_manager() as session:
+        async with session_manager() as session:
             opts: DeleteOptions = options or {}
             opts["session"] = session
-            ctxman = (
-                nullcontext
-                if (
-                    session.in_transaction  # type: ignore[truthy-function]
-                    or not await self.supports_transactions()
-                )
-                else session.start_transaction
-            )
 
             ids = await self.find_ids(query, session=session) if self._has_delete_rules() else None
 
             has_ids = ids is not None and len(ids) > 0
 
-            async with ctxman():
+            async with (
+                nullcontext()
+                if (session.in_transaction or not await self.supports_transactions())
+                else await session.start_transaction()
+            ):
                 if has_ids:
                     await self._validate_deny_delete(
                         session,
@@ -408,21 +404,17 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
         session_manager = self._get_session_context_manager(
             options.get("session", None) if options else None
         )
-        async with await session_manager() as session:
+        async with session_manager() as session:
             opts: DeleteOptions = options or {}
             opts["session"] = session
-            ctxman = (
-                nullcontext
-                if (
-                    session.in_transaction  # type: ignore[truthy-function]
-                    or not await self.supports_transactions()
-                )
-                else session.start_transaction
-            )
 
             ids = await self.find_ids(query, session=session) if self._has_delete_rules() else None
 
-            async with ctxman():
+            async with (
+                nullcontext()
+                if (session.in_transaction or not await self.supports_transactions())
+                else await session.start_transaction()
+            ):
                 if ids is not None:
                     if len(ids) > 1:
                         # Only when the service has delete rules...
@@ -795,7 +787,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
     def _get_session_context_manager(
         self,
         session: AgnosticClientSession | None,
-    ) -> Callable[[], Coroutine[None, None, AbstractAsyncContextManager[AgnosticClientSession]]]:
+    ) -> Callable[[], AbstractAsyncContextManager[AgnosticClientSession]]:
         """
         Returns a session context manager
         """
@@ -803,7 +795,7 @@ class BaseService(Generic[TInsert, TUpdate, TPrimaryKey]):
             # Return a context manager that actually starts a session.
             return self.client.start_session
 
-        async def start_session() -> AbstractAsyncContextManager[AgnosticClientSession]:
+        def start_session() -> AbstractAsyncContextManager[AgnosticClientSession]:
             @asynccontextmanager
             async def ctx_manager() -> AsyncGenerator[AgnosticClientSession, None]:
                 yield session

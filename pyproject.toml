@@ -1,13 +1,11 @@
 [project]
 name = "motorhead"
-description = "Async MongoDB with vanilla Pydantic v2+ - made easy."
+dynamic = ["version"]
+description = "Async MongoDB/DocumentDB with vanilla Pydantic v2+ - made easy."
+authors = [{ name = "Peter Volf", email = "do.volfp@gmail.com" }]
+requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
-authors = [
-    { name = "Peter Volf", email = "do.volfp@gmail.com" },
-]
-requires-python = ">=3.10"
-dependencies = ["pydantic", "motor"]
 classifiers = [
     "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
@@ -23,49 +21,50 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Internet :: WWW/HTTP",
 ]
+dependencies = [
+    "pydantic>=2.1",
+    "pymongo>=4.17.0",
+]
 
 [project.urls]
 homepage = "https://github.com/volfpeter/motorhead"
 documentation = "https://volfpeter.github.io/motorhead"
 tracker = "https://github.com/volfpeter/motorhead/issues"
 
-[tool.poetry]
-name = "motorhead"
-version = "0.2501.2"
-description = "Async MongoDB with vanilla Pydantic v2+ - made easy."
-authors = ["Peter Volf <do.volfp@gmail.com>"]
-readme = "README.md"
-packages = [{include = "motorhead"}]
+[dependency-groups]
+dev = [
+    "mkdocstrings[python]>=1.0.4",
+    "mypy>=1.20.1,<2",
+    "poethepoet>=0.44.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "pytest-docker>=3.2.5,<4",
+    "pytest-random-order>=1.2.0,<2",
+    "ruff>=0.15.11,<0.16",
+    "zensical>=0.0.42",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-motor = "^3.6.0"
-pydantic = ">=2.1.0"
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
-[tool.poetry.group.dev.dependencies]
-mkdocs-material = "^9.5.44"
-mkdocstrings = {extras = ["python"], version = "^0.27.0"}
-mypy = "^1.13.0"
-ruff = "^0.7.3"
-poethepoet = "^0.29.0"
-pytest = "^8.3.3"
-pytest-asyncio = "^0.24.0"
-pytest-docker = "^3.1.1"
-pytest-random-order = "^1.1.1"
-typing-extensions = "^4.12.2"
+[tool.pdm.build]
+excludes = ["tests/"]
+
+[tool.pdm.version]
+source = "file"
+path = "motorhead/__init__.py"
 
 [tool.mypy]
 strict = true
 show_error_codes = true
-exclude = ["tree_app"]
 
-[[tool.mypy.overrides]]
-module = ["motor.*"]
-ignore_missing_imports = true
+[tool.pytest.ini_options]
+addopts = "--random-order"
 
 [tool.ruff]
 line-length = 108
-lint.exclude = [
+exclude = [
     ".git",
     ".mypy_cache",
     ".pytest_cache",
@@ -75,33 +74,31 @@ lint.exclude = [
     "docs",
 ]
 lint.select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "S",  # flake8-bandit - we must ignore these rules in tests
-    "C",  # flake8-comprehensions
-    "B",  # flake8-bugbear
+    "B", # flake8-bugbear
+    "C", # flake8-comprehensions
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+    "S", # flake8-bandit - we must ignore these rules in tests
+    "W", # pycodestyle warnings
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = ["S101"]  # S101: use of assert detected
 
-[tool.pytest.ini_options]
-addopts = "--random-order"
 
 [tool.poe.tasks]
-serve-docs = "mkdocs serve"
-check-format = "ruff format --check ."
+format = "ruff format --check ."
+format-fix = "ruff format ."
+
 lint = "ruff check ."
+lint-fix = "ruff check . --fix"
+
 mypy = "mypy ."
-format = "ruff format ."
-lint-fix = "ruff . --fix"
+
+check.sequence = ["format", "lint", "mypy"]
+check.ignore_fail = "return_non_zero"
+
 test = "python -m pytest tests"
 
-static-checks.sequence = ["lint", "check-format", "mypy"]
-static-checks.ignore_fail = "return_non_zero"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+serve-docs = "zensical serve"

@@ -133,3 +133,7 @@ dmypy.json
 
 # Poetry lock file
 poetry.lock
+
+# uv lock file
+
+uv.lock

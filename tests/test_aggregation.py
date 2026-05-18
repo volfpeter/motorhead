@@ -132,7 +132,8 @@ class TestAggregation:
             assert len(insert_result.inserted_ids) == 100
 
             # -- Count all documents
-            result = [doc async for doc in person_service.aggregate(Aggregation().stage("$count", "total"))]
+            cursor = await person_service.aggregate(Aggregation().stage("$count", "total"))
+            result = [doc async for doc in cursor]
             assert len(result) == 1
             assert isinstance(result[0], dict)
             assert len(result[0]) == 1
@@ -141,7 +142,7 @@ class TestAggregation:
             # -- Filter and count documents
             result = [
                 doc
-                async for doc in person_service.aggregate(
+                async for doc in await person_service.aggregate(
                     Aggregation().stage("$match", {"lucky_number": {"$lt": 1024}}).stage("$count", "total")
                 )
             ]
@@ -153,7 +154,7 @@ class TestAggregation:
             # -- Sort and count documents in groups
             result = [
                 doc
-                async for doc in person_service.aggregate(
+                async for doc in await person_service.aggregate(
                     Aggregation()
                     .stage("$sort", {"lucky_number": 1})
                     .stage("$group", {"_id": "$group_id", "size": {"$count": {}}})

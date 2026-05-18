@@ -4,18 +4,19 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, TypedDict, Union
 
-from motor.core import AgnosticClient as _AgnosticClient
-from motor.core import AgnosticClientSession as AgnosticClientSession
-from motor.core import AgnosticCollection as _AgnosticCollection
-from motor.core import AgnosticCommandCursor as _AgnosticCommandCursor
-from motor.core import AgnosticCursor as _AgnosticCursor
-from motor.core import AgnosticDatabase as _AgnosticDatabase
-from motor.core import AgnosticLatentCommandCursor as _AgnosticLatentCommandCursor
+from pymongo.asynchronous.client_session import AsyncClientSession
+from pymongo.asynchronous.collection import AsyncCollection as _AgnosticCollection
+from pymongo.asynchronous.command_cursor import AsyncCommandCursor as _AgnosticCommandCursor
+from pymongo.asynchronous.cursor import AsyncCursor as _AgnosticCursor
+from pymongo.asynchronous.database import AsyncDatabase as _AgnosticDatabase
+from pymongo.asynchronous.mongo_client import AsyncMongoClient as _AgnosticClient
 from pymongo.collation import Collation as PMCollation
 from pymongo.results import DeleteResult as DeleteResult
 from pymongo.results import InsertManyResult as InsertManyResult
 from pymongo.results import InsertOneResult as InsertOneResult
 from pymongo.results import UpdateResult as UpdateResult
+
+AgnosticClientSession = AsyncClientSession
 
 if TYPE_CHECKING:
     from bson.codec_options import CodecOptions
@@ -23,14 +24,14 @@ if TYPE_CHECKING:
     from pymongo.read_preferences import Nearest, Primary, PrimaryPreferred, Secondary, SecondaryPreferred
     from pymongo.write_concern import WriteConcern
 
-# -- Fix the generic type of some motor types that emulate generics with __class_getitem__()
+# -- Fix the generic type of some pymongo types that emulate generics with __class_getitem__()
 
 AgnosticClient = _AgnosticClient[Any]
 AgnosticCollection = _AgnosticCollection[Any]
 AgnosticCommandCursor = _AgnosticCommandCursor[Any]
 AgnosticCursor = _AgnosticCursor[Any]
 AgnosticDatabase = _AgnosticDatabase[Any]
-AgnosticLatentCommandCursor = _AgnosticLatentCommandCursor[Any]
+AgnosticLatentCommandCursor = _AgnosticCommandCursor[Any]
 
 # -- Typing
 

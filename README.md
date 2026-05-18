@@ -9,7 +9,7 @@
 
 # Motorhead
 
-Async MongoDB with vanilla Pydantic v2+ - made easy.
+Async MongoDB/DocumentDB with vanilla Pydantic v2+ - made easy.
 
 Key features:
 
@@ -18,10 +18,10 @@ Key features:
 - ODM-like **query builder** for convenient, typed, and Pythonic query construction.
 - Declarative **index** specification.
 - Typed **utilities** for convenient model and API creation.
-- Ready to use, customizable **async service layer** with **transaction support** that integrates all the above to keep your API and business logic clean, flexible, and easy to understand.
+- Ready to use, customizable **async service layer** with **transaction support** that integrates all the above to keep your business logic clean, flexible, and easy to understand.
 - **Simplicity**: by not being a classic ODM, the codebase is very simple and easy to understand (even contribute to) even for relative beginners.
 
-By providing a convenient, declarative middle layer between MongoDB and your API, `motorhead` is halfway between an object document mapper (based on vanilla `Pydantic`) and a database driver (by wrapping the official, async `motor` driver). What's missing is the built-in ODM performance and memory overhead, whose benefits are rarely felt when working with document databases.
+By providing a convenient, declarative middle layer between MongoDB/DocumentDB and your API, `motorhead` is halfway between an object document mapper (based on vanilla `Pydantic`) and a database driver (by wrapping the official async `pymongo` driver). What's missing is the built-in ODM performance and memory overhead, whose benefits are rarely felt when working with document databases.
 
 See the [full documentation here](https://volfpeter.github.io/motorhead/).
 
@@ -39,21 +39,17 @@ See the [documentation](https://volfpeter.github.io/motorhead/fastapi-example/) 
 
 ## Requirements
 
-The project depends on `motor` (the official asyncio MongoDB driver, which is built on top of `pymongo` and `bson`) and `pydantic` v2+.
+The project depends on `pymongo` (the official async MongoDB driver) and `pydantic` v2+.
 
 ## Development
 
-Use `black` for code formatting, `mypy` for static code analysis, `ruff` for linting, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
+Use `ruff` for code formatting and linting, `mypy` for static code analysis, and `pytest` (with `pytest-asyncio` and `pytest-docker`) for testing.
 
 The documentation is built with `mkdocs-material` and `mkdocstrings`.
 
 ## Contributing
 
 All contributions are welcome.
-
-## Notes
-
-This project is the continuation of [fastapi-motor-oil](https://github.com/volfpeter/fastapi-motor-oil) with support for [Pydantic v2](https://docs.pydantic.dev/latest/migration/), among other improvements. Migration from `fastapi-motor-oil` should be easy, but if you need help, just create an issue in the issue tracker.
 
 ## License - MIT
 
